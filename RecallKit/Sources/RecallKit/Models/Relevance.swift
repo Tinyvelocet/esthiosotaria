@@ -5,7 +5,7 @@ import Foundation
 /// The tier is a confidence signal, not a certainty: recall data never
 /// names a specific store shelf. UI copy must say "could be at your
 /// store", never "is at your store".
-public struct Relevance: Equatable, Sendable {
+public struct Relevance: Equatable, Hashable, Sendable {
     public enum Tier: Int, Comparable, Sendable {
         /// Recalling firm or brand matches a tracked store's chain.
         case chain = 0

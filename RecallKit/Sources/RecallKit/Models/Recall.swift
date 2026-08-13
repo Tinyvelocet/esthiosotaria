@@ -6,7 +6,7 @@ import Foundation
 /// `distribution_pattern` and `brand_names` drive local relevance matching;
 /// they are free-form text and must never be presented as certainty
 /// (the UI must say "could be at your store", never "is").
-public struct Recall: Codable, Identifiable, Equatable, Sendable {
+public struct Recall: Codable, Identifiable, Equatable, Hashable, Sendable {
 
     /// FDA classification of a recall's health risk.
     public enum Classification: String, Codable, Sendable {
