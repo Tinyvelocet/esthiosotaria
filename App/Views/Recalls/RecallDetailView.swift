@@ -1,7 +1,8 @@
 import SwiftUI
 import RecallKit
 
-/// Full details for one recall, with actions and the official FDA link.
+/// Full details for one recall, with actions and the official notice link.
+/// Design surface: header, four labeled sections, handled toggle.
 struct RecallDetailView: View {
     let item: RecallListViewModel.Item
     @EnvironmentObject var settings: UserSettingsStore
@@ -41,7 +42,7 @@ struct RecallDetailView: View {
             if item.isChainMatch {
                 Label("Could be at your store", systemImage: "exclamationmark.triangle.fill")
                     .font(.subheadline.bold())
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Design.Accent.storeMatch)
             }
             Text(item.recall.recallingFirm ?? "Unknown company")
                 .font(.title3.bold())
@@ -88,4 +89,18 @@ struct RecallDetailView: View {
         }
         .toggleStyle(.switch)
     }
+}
+
+#Preview("Detail — Class I chain match") {
+    NavigationStack {
+        RecallDetailView(item: MockData.items(for: [MockData.kirklandMadeleines], stores: MockData.fourStores)[0])
+    }
+    .environmentObject(UserSettingsStore.designState())
+}
+
+#Preview("Detail — USDA/FSIS regional") {
+    NavigationStack {
+        RecallDetailView(item: MockData.items(for: [MockData.fsisGroundBeef], stores: [])[0])
+    }
+    .environmentObject(UserSettingsStore.designState())
 }

@@ -79,4 +79,24 @@ final class RecallListViewModel: ObservableObject {
         if sa != sb { return sa < sb }
         return (a.recall.reportDate ?? "") > (b.recall.reportDate ?? "")
     }
+
+    // MARK: - Design support
+
+    /// Builds a view model pre-populated with mock data for previews and
+    /// the design gallery. No network access.
+    static func designState() -> RecallListViewModel {
+        let vm = RecallListViewModel()
+        let stores = MockData.fourStores
+        vm.chainMatches = items(for: MockData.chainMatchRecalls, stores: stores)
+        vm.regionalMatches = items(for: MockData.regionalRecalls, stores: stores)
+        vm.lastUpdated = Date()
+        vm.state = .loaded
+        vm.fsisUnavailable = false
+        return vm
+    }
+
+    private static func items(for recalls: [Recall], stores: [Store]) -> [Item] {
+        let engine = MatchingEngine(userState: "CA")
+        return recalls.map { Item(recall: $0, relevance: engine.relevance(for: $0, stores: stores)) }
+    }
 }

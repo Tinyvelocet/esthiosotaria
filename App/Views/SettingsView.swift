@@ -106,3 +106,17 @@ struct SettingsView: View {
         }
     }
 }
+
+#Preview("Settings — populated") {
+    NavigationStack {
+        SettingsView()
+    }
+    .environmentObject(UserSettingsStore.designState())
+}
+
+#Preview("Settings — empty") {
+    NavigationStack {
+        SettingsView()
+    }
+    .environmentObject(UserSettingsStore())
+}

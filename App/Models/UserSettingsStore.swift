@@ -70,6 +70,17 @@ final class UserSettingsStore: ObservableObject {
         payload.onboardingComplete = true
     }
 
+    // MARK: - Design support
+
+    /// Pre-populated store for previews / design gallery (no file I/O).
+    static func designState() -> UserSettingsStore {
+        let store = UserSettingsStore()
+        store.payload.selectedStores = MockData.fourStores
+        store.payload.stateAbbrev = "CA"
+        store.payload.onboardingComplete = true
+        return store
+    }
+
     // MARK: - Persistence
 
     private func scheduleSave() {

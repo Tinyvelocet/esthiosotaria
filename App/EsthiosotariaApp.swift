@@ -7,8 +7,14 @@ struct EsthiosotariaApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .environmentObject(settings)
+            if DesignGalleryView.showAtLaunch {
+                NavigationStack {
+                    DesignGalleryView()
+                }
+            } else {
+                RootView()
+                    .environmentObject(settings)
+            }
         }
     }
 }
