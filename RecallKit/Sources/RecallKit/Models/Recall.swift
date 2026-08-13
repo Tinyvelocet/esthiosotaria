@@ -1,12 +1,21 @@
 import Foundation
 
-/// A single food recall event, as reported by the FDA enforcement dataset.
+/// A single food recall event, as reported by the FDA enforcement dataset
+/// or the USDA FSIS recall feed.
 ///
 /// Field names mirror openFDA's `food/enforcement.json` records.
 /// `distribution_pattern` and `brand_names` drive local relevance matching;
 /// they are free-form text and must never be presented as certainty
 /// (the UI must say "could be at your store", never "is").
 public struct Recall: Codable, Identifiable, Equatable, Hashable, Sendable {
+
+    /// Which agency reported this recall.
+    public enum Agency: String, Codable, Sendable {
+        /// U.S. Food and Drug Administration (openFDA enforcement data).
+        case fda = "FDA"
+        /// USDA Food Safety and Inspection Service (meat, poultry, eggs).
+        case fsis = "USDA"
+    }
 
     /// FDA classification of a recall's health risk.
     public enum Classification: String, Codable, Sendable {
@@ -49,6 +58,12 @@ public struct Recall: Codable, Identifiable, Equatable, Hashable, Sendable {
     /// Brand names from the `openfda.brand_name` array, when present.
     public let brandNames: [String]?
 
+    /// Reporting agency (defaults to FDA for openFDA records).
+    public let agency: Agency
+
+    /// Link to the official recall notice, when the source provides one.
+    public let urlString: String?
+
     enum CodingKeys: String, CodingKey {
         case id = "recall_number"
         case status
@@ -59,6 +74,8 @@ public struct Recall: Codable, Identifiable, Equatable, Hashable, Sendable {
         case distributionPattern = "distribution_pattern"
         case reportDate = "report_date"
         case openfda
+        case agency
+        case urlString = "url"
     }
 
     private enum OpenFDACodingKeys: String, CodingKey {
@@ -80,6 +97,8 @@ public struct Recall: Codable, Identifiable, Equatable, Hashable, Sendable {
         } else {
             brandNames = nil
         }
+        agency = try c.decodeIfPresent(Agency.self, forKey: .agency) ?? .fda
+        urlString = try c.decodeIfPresent(String.self, forKey: .urlString)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -92,6 +111,8 @@ public struct Recall: Codable, Identifiable, Equatable, Hashable, Sendable {
         try c.encodeIfPresent(reasonForRecall, forKey: .reasonForRecall)
         try c.encodeIfPresent(distributionPattern, forKey: .distributionPattern)
         try c.encodeIfPresent(reportDate, forKey: .reportDate)
+        try c.encodeIfPresent(agency, forKey: .agency)
+        try c.encodeIfPresent(urlString, forKey: .urlString)
         if let brandNames {
             var openfda = c.nestedContainer(keyedBy: OpenFDACodingKeys.self, forKey: .openfda)
             try openfda.encode(brandNames, forKey: .brandName)
@@ -108,7 +129,9 @@ public struct Recall: Codable, Identifiable, Equatable, Hashable, Sendable {
         reasonForRecall: String? = nil,
         distributionPattern: String? = nil,
         reportDate: String? = nil,
-        brandNames: [String]? = nil
+        brandNames: [String]? = nil,
+        agency: Agency = .fda,
+        urlString: String? = nil
     ) {
         self.id = id
         self.status = status
@@ -119,5 +142,7 @@ public struct Recall: Codable, Identifiable, Equatable, Hashable, Sendable {
         self.distributionPattern = distributionPattern
         self.reportDate = reportDate
         self.brandNames = brandNames
+        self.agency = agency
+        self.urlString = urlString
     }
 }

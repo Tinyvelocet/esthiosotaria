@@ -94,8 +94,16 @@ struct RecallListView: View {
             } header: {
                 Text("In your area")
             } footer: {
-                if let lastUpdated = viewModel.lastUpdated {
-                    Text("Updated \(lastUpdated.formatted(date: .omitted, time: .shortened)). FDA data may lag the official recall site by days.")
+                VStack(alignment: .leading, spacing: 4) {
+                    if viewModel.fsisUnavailable {
+                        Label("USDA meat/poultry feed unavailable — FDA recalls shown only.",
+                              systemImage: "exclamationmark.circle")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
+                    if let lastUpdated = viewModel.lastUpdated {
+                        Text("Updated \(lastUpdated.formatted(date: .omitted, time: .shortened)). FDA data may lag the official recall site by days.")
+                    }
                 }
             }
         }
@@ -143,6 +151,12 @@ struct RecallRow: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
                 severityBadge
+                Text(item.recall.agency.rawValue)
+                    .font(.caption2.weight(.semibold))
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 2)
+                    .background(.quaternary, in: Capsule())
+                    .foregroundStyle(.secondary)
                 Spacer()
                 Text(dateLabel)
                     .font(.caption)

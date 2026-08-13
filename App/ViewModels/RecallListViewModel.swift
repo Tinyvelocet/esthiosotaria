@@ -25,17 +25,28 @@ final class RecallListViewModel: ObservableObject {
     @Published var regionalMatches: [Item] = []
     @Published var state: LoadState = .idle
     @Published var lastUpdated: Date?
+    /// True when the FSIS (USDA meat/poultry) feed was unavailable this run
+    /// — FDA data still shown, but meat coverage may be incomplete.
+    @Published var fsisUnavailable = false
 
     private let service: FDAService
+    private let fsisService: FSISService
 
-    init(service: FDAService = FDAService()) {
+    init(service: FDAService = FDAService(), fsisService: FSISService = FSISService()) {
         self.service = service
+        self.fsisService = fsisService
     }
 
     func refresh(stores: [Store], stateAbbrev: String, handledIDs: Set<String>) async {
         state = .loading
         do {
-            let recalls = try await service.fetchOngoing(limit: 500)
+            // Fetch both sources in parallel; FSIS failure is non-fatal
+            // (its site bot-gates some networks — degrade to FDA-only).
+            async let fdaRecalls = service.fetchOngoing(limit: 500)
+            let fsisRecalls = (try? await fsisService.fetchRecalls()) ?? []
+            fsisUnavailable = fsisRecalls.isEmpty
+            let recalls = try await fdaRecalls + fsisRecalls
+
             let engine = MatchingEngine(userState: stateAbbrev)
 
             var chain: [Item] = []

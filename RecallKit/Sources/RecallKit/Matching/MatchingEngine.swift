@@ -43,12 +43,14 @@ public struct MatchingEngine: Sendable {
     }
 
     /// Lowercased concatenation of all recall text fields that may carry
-    /// firm/brand identifiers.
+    /// firm/brand identifiers. Includes `reasonForRecall` because FSIS
+    /// records carry store/brand names in the description text.
     private func recallText(_ recall: Recall) -> String {
         var parts: [String] = []
         if let firm = recall.recallingFirm { parts.append(firm) }
         if let desc = recall.productDescription { parts.append(desc) }
         if let brands = recall.brandNames { parts.append(contentsOf: brands) }
+        if let reason = recall.reasonForRecall { parts.append(reason) }
         return parts.joined(separator: " ").lowercased()
     }
 }

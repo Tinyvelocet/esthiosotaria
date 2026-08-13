@@ -20,8 +20,8 @@ struct RecallDetailView: View {
                     Text(advice)
                 }
                 section("Official notice") {
-                    Link(destination: fdaURL) {
-                        Label("Open the FDA recall record", systemImage: "arrow.up.right.square")
+                    Link(destination: noticeURL) {
+                        Label("Open the \(item.recall.agency.rawValue) recall record", systemImage: "arrow.up.right.square")
                     }
                 }
                 handledToggle
@@ -70,9 +70,13 @@ struct RecallDetailView: View {
         }
     }
 
-    private var fdaURL: URL {
-        URL(string: "https://www.accessdata.fda.gov/scripts/ires/index.cfm?event=recalls.showRecall&recallNumber=\(item.recall.id)")
-        ?? URL(string: "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts")!
+    private var noticeURL: URL {
+        // FSIS records carry a direct link; FDA records use the accessdata lookup.
+        if let urlString = item.recall.urlString, let url = URL(string: urlString) {
+            return url
+        }
+        return URL(string: "https://www.accessdata.fda.gov/scripts/ires/index.cfm?event=recalls.showRecall&recallNumber=\(item.recall.id)")
+            ?? URL(string: "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts")!
     }
 
     private var handledToggle: some View {
