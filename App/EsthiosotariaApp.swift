@@ -1,9 +1,9 @@
 import SwiftUI
-import RecallKit
 
 @main
 struct EsthiosotariaApp: App {
     @StateObject private var settings = UserSettingsStore()
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
@@ -16,5 +16,18 @@ struct EsthiosotariaApp: App {
                     .environmentObject(settings)
             }
         }
+        .onChange(of: scenePhase) { _, newPhase in
+            #if os(iOS)
+            if newPhase == .background {
+                BackgroundRefresh.schedule()
+            }
+            #endif
+        }
+    }
+
+    init() {
+        #if os(iOS)
+        BackgroundRefresh.register()
+        #endif
     }
 }

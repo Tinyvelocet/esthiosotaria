@@ -26,11 +26,13 @@ targets:
           - "*.entitlements"
     dependencies:
       - package: RecallKit
+      - target: EsthioSotariaWidget_iOS
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.tinyvelocet.esthiosotaria
         INFOPLIST_FILE: App/Info.plist
         TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_ENTITLEMENTS: App/EsthioSotaria-iOS.entitlements
         CODE_SIGN_STYLE: Automatic
 
   EsthioSotaria_macOS:
@@ -42,12 +44,46 @@ targets:
           - "*.entitlements"
     dependencies:
       - package: RecallKit
+      - target: EsthioSotariaWidget_macOS
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.tinyvelocet.esthiosotaria
         INFOPLIST_FILE: App/Info.plist
         CODE_SIGN_ENTITLEMENTS: App/EsthioSotaria-macOS.entitlements
         ENABLE_HARDENED_RUNTIME: YES
+
+  EsthioSotariaWidget_iOS:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Widget
+        excludes:
+          - "*.entitlements"
+    dependencies:
+      - package: RecallKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.tinyvelocet.esthiosotaria.widget
+        INFOPLIST_FILE: Widget/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Widget/EsthioSotariaWidget-iOS.entitlements
+        SKIP_INSTALL: YES
+        TARGETED_DEVICE_FAMILY: "1,2"
+
+  EsthioSotariaWidget_macOS:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: Widget
+        excludes:
+          - "*.entitlements"
+    dependencies:
+      - package: RecallKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.tinyvelocet.esthiosotaria.widget
+        INFOPLIST_FILE: Widget/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Widget/EsthioSotariaWidget-macOS.entitlements
+        SKIP_INSTALL: YES
 
 schemes:
   EsthioSotaria_iOS:

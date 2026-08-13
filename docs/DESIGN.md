@@ -14,6 +14,9 @@ Every major UI screen is **isolated in its own file**, renders from **mock data 
 | **Recall card** (the repeated element) | `App/Views/Recalls/RecallRowView.swift` | single card + all severities |
 | **Recall detail** | `App/Views/Recalls/RecallDetailView.swift` | chain match + FSIS regional |
 | Settings | `App/Views/SettingsView.swift` | populated + empty |
+| **Widget UI (all 3 families)** | `Widget/RecallWidgetEntryView.swift` | Xcode widget previews in `RecallWidget.swift` |
+| Widget entry point | `Widget/RecallWidget.swift` | small/medium/large previews |
+| Widget data provider | `Widget/RecallTimelineProvider.swift` | reads App Group cache only |
 
 Support:
 
@@ -36,6 +39,14 @@ Support:
 - **Icon + text pairing** everywhere (accessibility rule).
 - Store chips on chain matches are red (`Design.Accent.storeMatch`) — they are the escalation signal.
 - The "In your area" section must keep the FSIS-unavailable warning slot (orange `Label`).
+
+## Widget architecture (widget-first product)
+
+The widget is a **reader**, not a fetcher: the app does all network + matching, writes a `RecallSnapshot` to the shared App Group (`group.dev.tinyvelocet.esthiosotaria`), and calls `WidgetCenter.shared.reloadAllTimelines()`. The widget timeline provider just loads the snapshot. Consequences for design:
+
+- Widget views never show loading/error — they show either data or "Open EsthioSotaria to set up".
+- iOS freshness: `BGAppRefreshTask` (registered in `App/Services/BackgroundRefresh.swift`) republishes hourly-ish when iOS allows. macOS: refreshed whenever the Mac app runs.
+- The three families (small/medium/large) live in one file — `RecallWidgetEntryView.swift` — with a `familyOverride` init for design renders.
 
 ## Architecture of a screen
 

@@ -1,5 +1,6 @@
 import Foundation
 import RecallKit
+import WidgetKit
 
 /// Fetches ongoing recalls, matches them against the user's stores,
 /// and exposes sorted, filtered results. Pure app-layer glue over RecallKit.
@@ -39,6 +40,7 @@ final class RecallListViewModel: ObservableObject {
 
     func refresh(stores: [Store], stateAbbrev: String, handledIDs: Set<String>) async {
         state = .loading
+        self.stores = stores
         do {
             // Fetch both sources in parallel; FSIS failure is non-fatal
             // (its site bot-gates some networks — degrade to FDA-only).
@@ -67,6 +69,9 @@ final class RecallListViewModel: ObservableObject {
             regionalMatches = regional
             lastUpdated = Date()
             state = .loaded
+
+            // Publish the matched results for the widget (App Group cache).
+            publishSnapshot(chain: chain, regional: regional, stateAbbrev: stateAbbrev)
         } catch {
             state = .failed(error.localizedDescription)
         }
@@ -79,6 +84,34 @@ final class RecallListViewModel: ObservableObject {
         if sa != sb { return sa < sb }
         return (a.recall.reportDate ?? "") > (b.recall.reportDate ?? "")
     }
+
+    // MARK: - Widget cache
+
+    /// Writes the matched recalls to the shared App Group cache so the
+    /// widget can render without doing its own network calls.
+    private func publishSnapshot(chain: [Item], regional: [Item], stateAbbrev: String) {
+        guard let cache = RecallCache() else { return } // entitlement missing — degrade silently
+        let storeNames: [UUID: String] = Dictionary(uniqueKeysWithValues: stores.map { ($0.id, $0.name) })
+        let snapshot = RecallSnapshot(
+            generatedAt: Date(),
+            stateAbbrev: stateAbbrev,
+            chainItems: chain.map { item in
+                RecallSnapshot.Item(
+                    recall: item.recall,
+                    tier: .chain,
+                    matchedStoreNames: item.relevance.matchedStoreIDs.compactMap { storeNames[$0] })
+            },
+            regionalItems: regional.map { item in
+                RecallSnapshot.Item(recall: item.recall, tier: .regional, matchedStoreNames: [])
+            },
+            fsisUnavailable: fsisUnavailable)
+        try? cache.save(snapshot)
+        // Ask WidgetKit to redraw with the fresh snapshot.
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// The stores used for the most recent refresh (kept for snapshot names).
+    private var stores: [Store] = []
 
     // MARK: - Design support
 

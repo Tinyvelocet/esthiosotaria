@@ -6,7 +6,7 @@ import Foundation
 /// names a specific store shelf. UI copy must say "could be at your
 /// store", never "is at your store".
 public struct Relevance: Equatable, Hashable, Sendable {
-    public enum Tier: Int, Comparable, Sendable {
+    public enum Tier: Int, Comparable, Codable, Sendable {
         /// Recalling firm or brand matches a tracked store's chain.
         case chain = 0
         /// Distribution pattern covers the user's state (or nationwide).
