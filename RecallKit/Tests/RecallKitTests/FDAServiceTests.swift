@@ -52,4 +52,58 @@ final class FDAServiceTests: XCTestCase {
         let envelope = try JSONDecoder().decode(Envelope.self, from: Data(json.utf8))
         XCTAssertEqual(envelope.results[0].classification, .unknown)
     }
+
+    // MARK: - Task 1.2: FDAService
+
+    /// Stub transport that records requested URLs and returns a canned payload.
+    final class StubTransport: HTTPTransport, @unchecked Sendable {
+        var requestedURLs: [URL] = []
+        var payload: Data
+
+        init(payload: Data) { self.payload = payload }
+
+        func data(for url: URL) async throws -> (Data, URLResponse) {
+            requestedURLs.append(url)
+            let response = HTTPURLResponse(
+                url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            return (payload, response)
+        }
+    }
+
+    func testFDAServiceBuildsOngoingQuery() async throws {
+        let data = try fixtureData("fda_sample")
+        let stub = StubTransport(payload: data)
+        let service = FDAService(transport: stub)
+
+        let recalls = try await service.fetchOngoing(limit: 150)
+
+        XCTAssertEqual(recalls.count, 1)
+        XCTAssertEqual(recalls[0].id, "H-1189-2026")
+
+        let url = try XCTUnwrap(stub.requestedURLs.first)
+        XCTAssertEqual(url.scheme, "https")
+        XCTAssertEqual(url.host, "api.fda.gov")
+        XCTAssertTrue(url.path.contains("food/enforcement.json"))
+        let query = url.query ?? ""
+        XCTAssertTrue(query.contains("status"), "query should filter ongoing: \(query)")
+        XCTAssertTrue(query.contains("Ongoing"), "query should filter ongoing: \(query)")
+        XCTAssertTrue(query.contains("limit=150"), "query should carry limit: \(query)")
+    }
+
+    func testFDAServiceThrowsOnHTTPError() async throws {
+        final class FailingTransport: HTTPTransport, @unchecked Sendable {
+            func data(for url: URL) async throws -> (Data, URLResponse) {
+                let response = HTTPURLResponse(
+                    url: url, statusCode: 429, httpVersion: nil, headerFields: nil)!
+                return (Data(), response)
+            }
+        }
+        let service = FDAService(transport: FailingTransport())
+        do {
+            _ = try await service.fetchOngoing()
+            XCTFail("expected error on HTTP 429")
+        } catch {
+            // Expected: rate-limited or error response must surface, not swallow.
+        }
+    }
 }
