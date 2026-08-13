@@ -1,0 +1,19 @@
+{
+  "results": [
+    {
+      "recall_number": "H-1189-2026",
+      "status": "Ongoing",
+      "classification": "Class I",
+      "recalling_firm": "Nelson & Isa Lacteos LLC",
+      "product_description": "Requeson (soft ricotta) 1 lb. packed into a clear clamshell package with no labeling information.",
+      "reason_for_recall": "Products may be contaminated with Listeria monocytogenes.",
+      "distribution_pattern": "Only in NY.",
+      "report_date": "20260805",
+      "city": "Bay Shore",
+      "state": "NY",
+      "openfda": {
+        "brand_name": ["Nelson & Isa Lacteos"]
+      }
+    }
+  ]
+}

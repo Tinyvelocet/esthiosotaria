@@ -1,0 +1,12 @@
+#!/bin/sh
+# Reject commits that credit AI assistants in trailers.
+msg="$(git log -1 --pretty=%B 2>/dev/null || cat .git/COMMIT_EDITMSG 2>/dev/null)"
+# Read the message being committed if available
+if [ -f "$1" ]; then
+  msg="$(cat "$1")"
+fi
+if printf '%s' "$msg" | grep -qiE 'Co-Authored-By:.*(claude|anthropic)|Generated with (Claude|Copilot)'; then
+  echo "commit-msg: blocked — AI co-author trailers are not allowed in this repo." >&2
+  exit 1
+fi
+exit 0
