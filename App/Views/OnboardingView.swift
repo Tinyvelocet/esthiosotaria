@@ -57,7 +57,7 @@ struct OnboardingView: View {
                     radiusMiles: $radiusMiles,
                     onRadiusCommit: {
                         if let coordinate {
-                            Task { await discovery.discoverStores(near: coordinate, radiusMiles: radiusMiles) }
+                            Task { await runDiscovery(near: coordinate) }
                         }
                     },
                     onToggle: { toggle($0) },
@@ -92,7 +92,7 @@ struct OnboardingView: View {
             let coordinate = try await location.requestCurrentLocation()
             self.coordinate = coordinate
             step = .pickingStores
-            await discovery.discoverStores(near: coordinate, radiusMiles: radiusMiles)
+            await runDiscovery(near: coordinate)
         } catch {
             step = .manualEntry
         }
@@ -111,11 +111,21 @@ struct OnboardingView: View {
                         settings.payload.stateAbbrev = abbrev
                     }
                     step = .pickingStores
-                    await discovery.discoverStores(near: coordinate, radiusMiles: radiusMiles)
+                    await runDiscovery(near: coordinate)
                 } else {
                     geocodingError = "Couldn't find that place. Try a city name or ZIP code."
                 }
             }
+        }
+    }
+
+    /// Runs discovery at `radiusMiles`, then syncs the slider/map back to
+    /// whatever radius the search actually used (it may auto-expand beyond
+    /// what was requested to find a store).
+    private func runDiscovery(near coordinate: CLLocationCoordinate2D) async {
+        await discovery.discoverStores(near: coordinate, radiusMiles: radiusMiles)
+        if let searched = discovery.searchedRadiusMiles {
+            radiusMiles = searched
         }
     }
 }

@@ -9,7 +9,7 @@ A local food recall tracker for **iOS + macOS**. It finds the grocery stores nea
 Food recalls are published constantly (~1,400 FDA recalls/year), but only a fraction reach your state and only a handful touch stores you actually shop at. EsthioSotaria filters to what matters to you:
 
 1. **Locate** — your position (never leaves the device) or a city you type.
-2. **Discover** — grocery stores within a radius you choose (5–50 mi, default 15), via Apple Maps with OpenStreetMap fallback.
+2. **Discover** — grocery stores within a radius you choose (5–50 mi, default 10 mi, auto-expanding in 5-mi steps if nothing's nearby), via Apple Maps merged with OpenStreetMap.
 3. **Track** — pick up to 4 stores.
 4. **Match** — every ongoing FDA recall is scored:
    - 🔴 **Chain match** (escalated to the top + local notification): the recalling firm/brand matches one of your stores — e.g. a Kirkland Signature recall for Costco shoppers.

@@ -8,7 +8,8 @@ final class RecallKitTests: XCTestCase {
 
     func testStoreLimits() {
         XCTAssertEqual(RecallKit.maxSelectedStores, 4)
-        XCTAssertEqual(RecallKit.defaultRadiusMiles, 15)
+        XCTAssertEqual(RecallKit.defaultRadiusMiles, 10)
         XCTAssertEqual(RecallKit.radiusRangeMiles, 5...50)
+        XCTAssertEqual(RecallKit.radiusExpansionStepMiles, 5)
     }
 }

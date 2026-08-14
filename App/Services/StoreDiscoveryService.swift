@@ -25,16 +25,52 @@ final class StoreDiscoveryService: ObservableObject {
     @Published var source: DiscoverySource?
     @Published var isLoading = false
     @Published var errorMessage: String?
+    /// Radius actually used for `discoveredStores` — wider than the
+    /// requested radius if the search had to auto-expand to find a store.
+    @Published var searchedRadiusMiles: Double?
 
     private let overpass = OverpassPOIService()
 
-    /// Discovers grocery stores within `radiusMiles` of the coordinate.
+    /// Discovers grocery stores near a coordinate, starting at `radiusMiles`
+    /// and expanding in `RecallKit.radiusExpansionStepMiles` steps (up to
+    /// `RecallKit.radiusRangeMiles`'s upper bound) until at least one store
+    /// is found, so a sparse area doesn't dead-end the search.
     func discoverStores(near coordinate: CLLocationCoordinate2D, radiusMiles: Double) async {
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
 
-        // Query both sources concurrently — neither blocks the other.
+        var currentRadius = radiusMiles
+        while true {
+            let (stores, foundSource) = await search(near: coordinate, radiusMiles: currentRadius)
+
+            if let stores, !stores.isEmpty {
+                discoveredStores = stores
+                source = foundSource
+                searchedRadiusMiles = currentRadius
+                return
+            }
+
+            guard let nextRadius = RadiusExpansion.nextRadius(
+                after: currentRadius,
+                step: RecallKit.radiusExpansionStepMiles,
+                ceiling: RecallKit.radiusRangeMiles.upperBound
+            ) else {
+                errorMessage = "Could not find stores nearby. Check your connection and try again."
+                discoveredStores = []
+                source = nil
+                searchedRadiusMiles = currentRadius
+                return
+            }
+            currentRadius = nextRadius
+        }
+    }
+
+    /// Queries both sources concurrently — neither blocks the other — and
+    /// merges them.
+    private func search(
+        near coordinate: CLLocationCoordinate2D, radiusMiles: Double
+    ) async -> (stores: [Store]?, source: DiscoverySource?) {
         async let mapKitResults = mapKitSearch(near: coordinate, radiusMiles: radiusMiles)
         async let overpassResults = overpassSearch(near: coordinate, radiusMiles: radiusMiles)
 
@@ -44,17 +80,13 @@ final class StoreDiscoveryService: ObservableObject {
         switch (mapKitStores, osmStores) {
         case let (mk?, osm?):
             let center = (lat: coordinate.latitude, lon: coordinate.longitude)
-            discoveredStores = StoreMerger.merge(mk, osm, around: center)
-            source = .merged
+            return (StoreMerger.merge(mk, osm, around: center), .merged)
         case let (mk?, nil):
-            discoveredStores = mk
-            source = .mapKit
+            return (mk, .mapKit)
         case let (nil, osm?):
-            discoveredStores = osm
-            source = .overpass
+            return (osm, .overpass)
         case (nil, nil):
-            errorMessage = "Could not find stores nearby. Check your connection and try again."
-            discoveredStores = []
+            return (nil, nil)
         }
     }
 
