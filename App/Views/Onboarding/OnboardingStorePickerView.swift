@@ -37,8 +37,20 @@ struct OnboardingStorePickerView: View {
     private static let initialListLimit = 15
     @State private var showAllStores = false
 
-    private var visibleStores: [Store] {
-        showAllStores ? stores : Array(stores.prefix(Self.initialListLimit))
+    /// Selected stores always float to the top (never hidden behind the
+    /// cap below) so they're easy to review and deselect.
+    private var selectedForDisplay: [Store] {
+        let selectedIDs = Set(selectedStores.map(\.id))
+        return stores.filter { selectedIDs.contains($0.id) }
+    }
+
+    private var unselectedStores: [Store] {
+        let selectedIDs = Set(selectedStores.map(\.id))
+        return stores.filter { !selectedIDs.contains($0.id) }
+    }
+
+    private var visibleUnselectedStores: [Store] {
+        showAllStores ? unselectedStores : Array(unselectedStores.prefix(Self.initialListLimit))
     }
 
     private var canSelectMore: Bool { selectedStores.count < RecallKit.maxSelectedStores }
@@ -117,17 +129,21 @@ struct OnboardingStorePickerView: View {
 
     private var storeList: some View {
         List {
-            ForEach(visibleStores, id: \.id) { store in
-                StoreRowView(
-                    store: store,
-                    isSelected: selectedStores.contains(store),
-                    canSelectMore: canSelectMore
-                ) {
+            ForEach(selectedForDisplay, id: \.id) { store in
+                StoreRowView(store: store, isSelected: true, canSelectMore: canSelectMore) {
                     onToggle(store)
                 }
             }
-            if !showAllStores && stores.count > Self.initialListLimit {
-                Button("Show \(stores.count - Self.initialListLimit) more stores") {
+            if !selectedForDisplay.isEmpty && !visibleUnselectedStores.isEmpty {
+                Divider()
+            }
+            ForEach(visibleUnselectedStores, id: \.id) { store in
+                StoreRowView(store: store, isSelected: false, canSelectMore: canSelectMore) {
+                    onToggle(store)
+                }
+            }
+            if !showAllStores && unselectedStores.count > Self.initialListLimit {
+                Button("Show \(unselectedStores.count - Self.initialListLimit) more stores") {
                     showAllStores = true
                 }
             }
