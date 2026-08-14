@@ -18,7 +18,11 @@ enum Design {
     }
 
     enum Spacing {
-        static let cardVertical: CGFloat = 4
+        static let cardVertical: CGFloat = 14
+        /// Gap within a tightly related pair (e.g. title + reason).
+        static let cardTightGap: CGFloat = 4
+        /// Gap between a card's distinct groups (meta row, content, chips).
+        static let cardGroupGap: CGFloat = 10
         static let screenPadding: CGFloat = 24
         static let sectionGap: CGFloat = 12
     }

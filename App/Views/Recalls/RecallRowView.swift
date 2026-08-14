@@ -5,15 +5,18 @@ import RecallKit
 /// Pure design surface: pass an item + stores, get a card.
 ///
 /// **Design notes:** severity must read at a glance (dot + words, never
-/// icon-only). Chain matches carry red store chips. Agency pill (FDA/USDA)
-/// distinguishes sources. Every icon is paired with text.
+/// icon-only) and carries real type weight so it's the first thing scanned.
+/// Chain matches carry red store chips — the escalation signal. Agency pill
+/// (FDA/USDA) distinguishes sources. Every icon is paired with text.
+/// Spacing is deliberately uneven: tight within the title/reason pair,
+/// looser between the card's three groups (meta, content, chips).
 struct RecallRowView: View {
     let item: RecallListViewModel.Item
     let stores: [Store]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: Design.Spacing.cardGroupGap) {
+            HStack(spacing: 8) {
                 severityBadge
                 agencyPill
                 Spacer()
@@ -21,33 +24,31 @@ struct RecallRowView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            Text(item.recall.shortProductName())
-                .font(.headline)
-                .lineLimit(2)
-            Text(item.recall.reasonSummary())
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .lineLimit(2)
+
+            VStack(alignment: .leading, spacing: Design.Spacing.cardTightGap) {
+                Text(item.recall.shortProductName())
+                    .font(.title3.weight(.semibold))
+                    .lineLimit(2)
+                Text(item.recall.reasonSummary())
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+
             if !item.relevance.matchedStoreIDs.isEmpty {
-                HStack(spacing: 6) {
-                    Image(systemName: "storefront")
-                        .font(.caption)
-                    Text(storeNames)
-                        .font(.caption.weight(.medium))
-                }
-                .foregroundStyle(Design.Accent.storeMatch)
+                storeChips
             }
         }
         .padding(.vertical, Design.Spacing.cardVertical)
     }
 
     private var severityBadge: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 5) {
             Circle()
                 .fill(severityColor)
-                .frame(width: 9, height: 9)
+                .frame(width: 10, height: 10)
             Text(severityLabel)
-                .font(.caption.bold())
+                .font(.subheadline.weight(.bold))
                 .foregroundStyle(severityColor)
         }
     }
@@ -59,6 +60,28 @@ struct RecallRowView: View {
             .padding(.vertical, 2)
             .background(.quaternary, in: Capsule())
             .foregroundStyle(.secondary)
+    }
+
+    /// Matched stores as individual red capsules (the escalation signal),
+    /// wrapping onto multiple lines rather than one truncated, comma-joined
+    /// caption — up to 4 stores can match, and names run long.
+    private var storeChips: some View {
+        HStack(alignment: .top, spacing: 6) {
+            Image(systemName: "storefront.fill")
+                .font(.caption)
+                .foregroundStyle(Design.Accent.storeMatch)
+                .padding(.top, 3)
+            FlowLayout(spacing: 6) {
+                ForEach(matchedStoreNames, id: \.self) { name in
+                    Text(name)
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Design.Accent.storeMatch.opacity(0.15), in: Capsule())
+                        .foregroundStyle(Design.Accent.storeMatch)
+                }
+            }
+        }
     }
 
     private var severityLabel: String {
@@ -79,10 +102,51 @@ struct RecallRowView: View {
         }
     }
 
-    private var storeNames: String {
+    private var matchedStoreNames: [String] {
         item.relevance.matchedStoreIDs
             .compactMap { id in stores.first(where: { $0.id == id })?.name }
-            .joined(separator: ", ")
+    }
+}
+
+/// Left-to-right, top-to-bottom wrapping layout for chip-style content that
+/// can't predict how many items it holds.
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 6
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxWidth = proposal.width ?? .infinity
+        var rowWidth: CGFloat = 0
+        var totalHeight: CGFloat = 0
+        var rowHeight: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if rowWidth > 0, rowWidth + spacing + size.width > maxWidth {
+                totalHeight += rowHeight + spacing
+                rowWidth = 0
+                rowHeight = 0
+            }
+            rowWidth += (rowWidth > 0 ? spacing : 0) + size.width
+            rowHeight = max(rowHeight, size.height)
+        }
+        totalHeight += rowHeight
+        return CGSize(width: maxWidth.isFinite ? maxWidth : rowWidth, height: totalHeight)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x = bounds.minX
+        var y = bounds.minY
+        var rowHeight: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x > bounds.minX, x + size.width > bounds.maxX {
+                x = bounds.minX
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+            subview.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
     }
 }
 
