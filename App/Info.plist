@@ -24,6 +24,8 @@
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>EsthioSotaria uses your location to find grocery stores near you. It never leaves this device.</string>
+	<key>NSQuitAlwaysKeepsWindows</key>
+	<false/>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>dev.tinyvelocet.esthiosotaria.refresh</string>
