@@ -83,14 +83,29 @@ struct RecallListView: View {
     }
 
     private var loadedList: some View {
+        VStack(spacing: 0) {
+            if settings.selectedStores.count > 1 {
+                storeFilterRow
+                Divider()
+            }
+            recallSections
+        }
+    }
+
+    private var recallSections: some View {
         let vm = effectiveViewModel
         return List {
             if !vm.chainMatches.isEmpty {
                 Section {
-                    ForEach(vm.chainMatches) { item in
-                        RecallRowView(item: item, stores: settings.selectedStores)
-                            .contentShape(Rectangle())
-                            .onTapGesture { selectedRecall = item }
+                    if visibleChainMatches.isEmpty {
+                        Text("All matching stores are hidden — tap a chip above to show them.")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(visibleChainMatches) { item in
+                            RecallRowView(item: item, stores: settings.selectedStores)
+                                .contentShape(Rectangle())
+                                .onTapGesture { selectedRecall = item }
+                        }
                     }
                 } header: {
                     Label("Could be at your stores", systemImage: "exclamationmark.triangle.fill")
@@ -131,6 +146,50 @@ struct RecallListView: View {
         .listStyle(.insetGrouped)
         .refreshable { await refresh() }
         #endif
+    }
+
+    /// Chain matches touching at least one currently visible store.
+    /// Regional matches aren't store-specific, so the filter never touches
+    /// them — hiding a store only narrows "could be at your stores".
+    private var visibleChainMatches: [RecallListViewModel.Item] {
+        effectiveViewModel.chainMatches.filter { item in
+            item.relevance.matchedStoreIDs.contains { !settings.isStoreHidden($0) }
+        }
+    }
+
+    /// One toggle chip per tracked store — a display-only filter. Hiding a
+    /// store never affects matching or notifications, only what's shown
+    /// here right now.
+    private var storeFilterRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(settings.selectedStores) { store in
+                    storeFilterChip(store)
+                }
+            }
+            .padding(.horizontal, Design.Spacing.screenPadding)
+        }
+        .padding(.vertical, 8)
+    }
+
+    private func storeFilterChip(_ store: Store) -> some View {
+        let isVisible = !settings.isStoreHidden(store.id)
+        return Button {
+            settings.setStoreHidden(store.id, isVisible)
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: isVisible ? "checkmark.circle.fill" : "circle")
+                Text(store.name)
+                    .lineLimit(1)
+            }
+            .font(.caption.weight(.medium))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(isVisible ? Color.accentColor.opacity(0.15) : Color.clear, in: Capsule())
+            .overlay(Capsule().strokeBorder(isVisible ? Color.clear : Color.secondary.opacity(0.4)))
+            .foregroundStyle(isVisible ? Color.accentColor : Color.secondary)
+        }
+        .buttonStyle(.plain)
     }
 
     private func refresh() async {

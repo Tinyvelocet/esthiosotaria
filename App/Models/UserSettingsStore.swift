@@ -14,6 +14,11 @@ final class UserSettingsStore: ObservableObject {
         var handledRecallIDs: [String] = []
         var onboardingComplete: Bool = false
         var chainNotificationsEnabled: Bool = true
+        /// Stores hidden from the recall list's display filter. Matching
+        /// and notifications still run against all selected stores — this
+        /// only affects what's shown, so hiding a store never causes a
+        /// recall to go unnoticed.
+        var hiddenStoreIDs: Set<UUID> = []
     }
 
     @Published var payload: Payload {
@@ -52,6 +57,19 @@ final class UserSettingsStore: ObservableObject {
 
     func removeStore(_ store: Store) {
         payload.selectedStores.removeAll { $0.id == store.id }
+        payload.hiddenStoreIDs.remove(store.id)
+    }
+
+    func isStoreHidden(_ id: UUID) -> Bool {
+        payload.hiddenStoreIDs.contains(id)
+    }
+
+    func setStoreHidden(_ id: UUID, _ hidden: Bool) {
+        if hidden {
+            payload.hiddenStoreIDs.insert(id)
+        } else {
+            payload.hiddenStoreIDs.remove(id)
+        }
     }
 
     func isHandled(_ recall: Recall) -> Bool {
