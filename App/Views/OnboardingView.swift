@@ -70,7 +70,7 @@ struct OnboardingView: View {
         }
         .padding(Design.Spacing.screenPadding)
         #if os(macOS)
-        .frame(minWidth: 480, minHeight: 560)
+        .frame(minWidth: 760, minHeight: 560)
         #endif
     }
 

@@ -31,6 +31,16 @@ struct OnboardingStorePickerView: View {
     private let isCompact = false
     #endif
 
+    /// Merged discovery can return 40+ stores in dense areas; show the
+    /// nearest ones first and let the user expand rather than dumping a
+    /// huge scroll on them (the map still plots every discovered store).
+    private static let initialListLimit = 15
+    @State private var showAllStores = false
+
+    private var visibleStores: [Store] {
+        showAllStores ? stores : Array(stores.prefix(Self.initialListLimit))
+    }
+
     private var canSelectMore: Bool { selectedStores.count < RecallKit.maxSelectedStores }
 
     var body: some View {
@@ -106,18 +116,26 @@ struct OnboardingStorePickerView: View {
     }
 
     private var storeList: some View {
-        List(stores, id: \.id) { store in
-            StoreRowView(
-                store: store,
-                isSelected: selectedStores.contains(store),
-                canSelectMore: canSelectMore
-            ) {
-                onToggle(store)
+        List {
+            ForEach(visibleStores, id: \.id) { store in
+                StoreRowView(
+                    store: store,
+                    isSelected: selectedStores.contains(store),
+                    canSelectMore: canSelectMore
+                ) {
+                    onToggle(store)
+                }
+            }
+            if !showAllStores && stores.count > Self.initialListLimit {
+                Button("Show \(stores.count - Self.initialListLimit) more stores") {
+                    showAllStores = true
+                }
             }
         }
         #if os(iOS)
         .listStyle(.plain)
         #endif
+        .onChange(of: stores) { _, _ in showAllStores = false }
     }
 
     // MARK: - Header & footer

@@ -13,5 +13,10 @@ struct RootView: View {
                 OnboardingView()
             }
         }
+        #if os(macOS)
+        // Floor for .windowResizability(.contentMinSize): keeps the window
+        // resizable while preventing unusably small sizes.
+        .frame(minWidth: 720, minHeight: 520)
+        #endif
     }
 }
