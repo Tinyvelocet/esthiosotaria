@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreLocation
 
 /// 🎨 Design Gallery — every major screen on one scrollable canvas, rendered
 /// from mock data with zero network access. Use it to compare screens while
@@ -44,12 +45,13 @@ struct DesignGalleryView: View {
                         source: .overpass,
                         isLoading: false,
                         errorMessage: nil,
+                        searchCenter: CLLocationCoordinate2D(latitude: 37.4419, longitude: -122.1430),
                         radiusMiles: .constant(15),
                         onRadiusCommit: {},
                         onToggle: { _ in },
                         onDone: {}
                     )
-                    .frame(height: 480)
+                    .frame(height: 560)
                     .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
                 }
 

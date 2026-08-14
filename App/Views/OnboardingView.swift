@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreLocation
+import MapKit
 import RecallKit
 
 /// Onboarding coordinator. Owns all onboarding STATE (location, discovery,
@@ -52,6 +53,7 @@ struct OnboardingView: View {
                     source: discovery.source,
                     isLoading: discovery.isLoading,
                     errorMessage: discovery.errorMessage,
+                    searchCenter: coordinate,
                     radiusMiles: $radiusMiles,
                     onRadiusCommit: {
                         if let coordinate {

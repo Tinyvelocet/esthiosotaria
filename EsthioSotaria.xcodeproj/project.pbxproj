@@ -18,6 +18,7 @@
 		2E0CE6E61163BFCFB0A64F26 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E28F0EE43C635A8E39CE955 /* OnboardingView.swift */; };
 		31EC06D587E8F0D4FD210DC1 /* RecallWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE5EB70364DB56439B8A414B /* RecallWidget.swift */; };
 		326A2CFD796B587EAE39CD91 /* RecallListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74813730C740907548951A4D /* RecallListView.swift */; };
+		360593085EB783F645CC7F25 /* StoreMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046B3C1199F26FDFB72A5ECF /* StoreMapView.swift */; };
 		3D9A569BFA5B4A84A7372629 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 749AC61E5D7802C215876034 /* LocationService.swift */; };
 		41C95569E511AC2126E0B5CF /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C8304011099B618A0C12BAB /* NotificationScheduler.swift */; };
 		44D6D13292CE7E809822ABF1 /* OnboardingManualEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8803F6740ACA3BAF9A8490 /* OnboardingManualEntryView.swift */; };
@@ -31,6 +32,7 @@
 		6B002BCDBA7DE745B8DF4ABA /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21DE389133E2E39A4945899 /* MockData.swift */; };
 		6CB4DBE94FE579A32CA858E9 /* StoreDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5465F34631498D6C6FC665FE /* StoreDiscoveryService.swift */; };
 		6EF233FAA50BDD930B2A3440 /* RecallListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74813730C740907548951A4D /* RecallListView.swift */; };
+		6FA29623602DCE0911E55939 /* StoreMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046B3C1199F26FDFB72A5ECF /* StoreMapView.swift */; };
 		70B568ED01C33BBCCCA83791 /* RecallListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31371B9D08F43FB8F7241FF9 /* RecallListViewModel.swift */; };
 		790A3E8801A4EAE14B7F403B /* RecallKit in Frameworks */ = {isa = PBXBuildFile; productRef = E997D5264EB446A17E0C3717 /* RecallKit */; };
 		7A3E4665BEDB7D72455BD2A8 /* DesignGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7CF4A520CB609CDEAF93994 /* DesignGalleryView.swift */; };
@@ -104,6 +106,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		046B3C1199F26FDFB72A5ECF /* StoreMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreMapView.swift; sourceTree = "<group>"; };
 		05A04D73BC88717477218032 /* EsthioSotaria_macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EsthioSotaria_macOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1936B6CA81431AB498761B14 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		1E28F0EE43C635A8E39CE955 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -245,6 +248,7 @@
 				BB8803F6740ACA3BAF9A8490 /* OnboardingManualEntryView.swift */,
 				652398B3F95F508FDAD663FF /* OnboardingStorePickerView.swift */,
 				5291BB8BAF72FFB0D12BED32 /* OnboardingWelcomeView.swift */,
+				046B3C1199F26FDFB72A5ECF /* StoreMapView.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -475,6 +479,7 @@
 				25025E6B6BE18A4EF0F89FE4 /* RootView.swift in Sources */,
 				DCE56BF7209EB052B1F7B07E /* SettingsView.swift in Sources */,
 				FDC9B6CFE3D7319E24FABE74 /* StoreDiscoveryService.swift in Sources */,
+				6FA29623602DCE0911E55939 /* StoreMapView.swift in Sources */,
 				7F3D50933B5970D06ABFE843 /* UserSettingsStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -502,6 +507,7 @@
 				91FCD9A6B58FB2B4C1D77A4F /* RootView.swift in Sources */,
 				6110C1325CD14DAC6374E507 /* SettingsView.swift in Sources */,
 				6CB4DBE94FE579A32CA858E9 /* StoreDiscoveryService.swift in Sources */,
+				360593085EB783F645CC7F25 /* StoreMapView.swift in Sources */,
 				CECC6365721648A28ECA8AC2 /* UserSettingsStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

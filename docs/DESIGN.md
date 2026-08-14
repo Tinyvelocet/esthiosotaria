@@ -9,7 +9,8 @@ Every major UI screen is **isolated in its own file**, renders from **mock data 
 | Onboarding — Welcome | `App/Views/Onboarding/OnboardingWelcomeView.swift` | light + dark |
 | Onboarding — Locating / denied | `App/Views/Onboarding/OnboardingLocatingView.swift` | both states |
 | Onboarding — Manual entry | `App/Views/Onboarding/OnboardingManualEntryView.swift` | normal + error |
-| Onboarding — Store picker | `App/Views/Onboarding/OnboardingStorePickerView.swift` | fresh + 2 selected |
+| Onboarding — Store picker (split list+map) | `App/Views/Onboarding/OnboardingStorePickerView.swift` | fresh + 2 selected |
+| Store picker map (MapKit) | `App/Views/Onboarding/StoreMapView.swift` | own preview; needs running app for tiles |
 | **Recall list (home)** | `App/Views/RecallListView.swift` | populated + FSIS-unavailable |
 | **Recall card** (the repeated element) | `App/Views/Recalls/RecallRowView.swift` | single card + all severities |
 | **Recall detail** | `App/Views/Recalls/RecallDetailView.swift` | chain match + FSIS regional |
