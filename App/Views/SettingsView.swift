@@ -8,6 +8,7 @@ struct SettingsView: View {
     @StateObject private var discovery = StoreDiscoveryService()
     @State private var manualCity = ""
     @State private var geocodeError: String?
+    @State private var newMutedProduct = ""
 
     var body: some View {
         Form {
@@ -67,6 +68,41 @@ struct SettingsView: View {
                         .disabled(settings.selectedStores.count >= RecallKit.maxSelectedStores)
                     }
                 }
+            }
+
+            Section {
+                ForEach(settings.payload.mutedProducts, id: \.self) { product in
+                    HStack {
+                        Text(product)
+                        Spacer()
+                        Button {
+                            settings.unmuteProduct(product)
+                        } label: {
+                            Image(systemName: "trash")
+                                .foregroundStyle(.red)
+                        }
+                        .buttonStyle(.borderless)
+                        .help("Remove from muted products")
+                    }
+                }
+                if settings.payload.mutedProducts.isEmpty {
+                    Text("Nothing muted yet. Swipe a recall card, or use its detail page, to mark a brand \"not something I buy.\"")
+                        .foregroundStyle(.secondary)
+                }
+                HStack {
+                    TextField("Brand or company name", text: $newMutedProduct)
+                        .textFieldStyle(.roundedBorder)
+                    Button("Mute") {
+                        settings.muteProduct(newMutedProduct)
+                        newMutedProduct = ""
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(newMutedProduct.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            } header: {
+                Text("Products you don't buy")
+            } footer: {
+                Text("Muted products won't trigger notifications or the red \"could be at your store\" alert, but their recalls still show up in your store's list.")
             }
 
             Section("Notifications") {

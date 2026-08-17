@@ -12,6 +12,7 @@ struct StoreDashboardView: View {
     let lastUpdated: Date?
     let onRefresh: () -> Void
 
+    @EnvironmentObject var settings: UserSettingsStore
     @State private var selectedStore: Store?
 
     private let columns = [
@@ -32,11 +33,11 @@ struct StoreDashboardView: View {
                         header
                         LazyVGrid(columns: columns, spacing: Design.Spacing.sectionGap) {
                             ForEach(stores) { store in
-                                let items = matchedItems(for: store)
+                                let active = activeMatchedItems(for: store)
                                 StoreTile(
                                     store: store,
-                                    score: DangerScore.score(for: items.map(\.recall)),
-                                    activeCount: items.count
+                                    score: DangerScore.score(for: active.map(\.recall)),
+                                    activeCount: active.count
                                 ) {
                                     selectedStore = store
                                 }
@@ -99,15 +100,24 @@ struct StoreDashboardView: View {
         .frame(maxWidth: 320)
     }
 
+    /// Every chain match for a store, muted ones included — this is what
+    /// the drill-down list shows, since muting downgrades urgency without
+    /// hiding the recall.
     private func matchedItems(for store: Store) -> [RecallListViewModel.Item] {
         chainMatches.filter { $0.relevance.matchedStoreIDs.contains(store.id) }
+    }
+
+    /// Muted products excluded — this is what the tile's score and count
+    /// reflect, since a muted product isn't something to be alarmed about.
+    private func activeMatchedItems(for store: Store) -> [RecallListViewModel.Item] {
+        matchedItems(for: store).filter { !settings.isProductMuted($0.recall) }
     }
 
     /// Feeds the background pattern's density — busier when the worst
     /// tracked store is more dangerous, not just a flat constant.
     private var overallIntensity: Double {
         stores
-            .map { DangerScore.score(for: matchedItems(for: $0).map(\.recall)) }
+            .map { DangerScore.score(for: activeMatchedItems(for: $0).map(\.recall)) }
             .max() ?? 0
     }
 }

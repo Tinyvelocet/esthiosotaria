@@ -38,7 +38,7 @@ final class RecallListViewModel: ObservableObject {
         self.fsisService = fsisService
     }
 
-    func refresh(stores: [Store], stateAbbrev: String, handledIDs: Set<String>) async {
+    func refresh(stores: [Store], stateAbbrev: String, handledIDs: Set<String>, mutedProductNames: [String] = []) async {
         state = .loading
         self.stores = stores
         do {
@@ -71,7 +71,7 @@ final class RecallListViewModel: ObservableObject {
             state = .loaded
 
             // Publish the matched results for the widget (App Group cache).
-            publishSnapshot(chain: chain, regional: regional, stateAbbrev: stateAbbrev)
+            publishSnapshot(chain: chain, regional: regional, stateAbbrev: stateAbbrev, mutedProductNames: mutedProductNames)
         } catch {
             state = .failed(error.localizedDescription)
         }
@@ -88,20 +88,25 @@ final class RecallListViewModel: ObservableObject {
     // MARK: - Widget cache
 
     /// Writes the matched recalls to the shared App Group cache so the
-    /// widget can render without doing its own network calls.
-    private func publishSnapshot(chain: [Item], regional: [Item], stateAbbrev: String) {
+    /// widget can render without doing its own network calls. Muted
+    /// products are left out entirely — the widget is a glance surface
+    /// with no way to review/unmute, so it should only ever show what's
+    /// actually urgent.
+    private func publishSnapshot(chain: [Item], regional: [Item], stateAbbrev: String, mutedProductNames: [String]) {
         guard let cache = RecallCache() else { return } // entitlement missing — degrade silently
         let storeNames: [UUID: String] = Dictionary(uniqueKeysWithValues: stores.map { ($0.id, $0.name) })
+        let activeChain = chain.filter { !ProductKey.isMuted($0.recall, mutedNames: mutedProductNames) }
+        let activeRegional = regional.filter { !ProductKey.isMuted($0.recall, mutedNames: mutedProductNames) }
         let snapshot = RecallSnapshot(
             generatedAt: Date(),
             stateAbbrev: stateAbbrev,
-            chainItems: chain.map { item in
+            chainItems: activeChain.map { item in
                 RecallSnapshot.Item(
                     recall: item.recall,
                     tier: .chain,
                     matchedStoreNames: item.relevance.matchedStoreIDs.compactMap { storeNames[$0] })
             },
-            regionalItems: regional.map { item in
+            regionalItems: activeRegional.map { item in
                 RecallSnapshot.Item(recall: item.recall, tier: .regional, matchedStoreNames: [])
             },
             fsisUnavailable: fsisUnavailable)

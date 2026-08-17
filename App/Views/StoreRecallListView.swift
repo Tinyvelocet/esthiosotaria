@@ -7,6 +7,7 @@ struct StoreRecallListView: View {
     let store: Store
     let items: [RecallListViewModel.Item]
 
+    @EnvironmentObject var settings: UserSettingsStore
     @State private var selectedRecall: RecallListViewModel.Item?
 
     var body: some View {
@@ -19,9 +20,10 @@ struct StoreRecallListView: View {
             } else {
                 Section {
                     ForEach(items) { item in
-                        RecallRowView(item: item, stores: [store])
+                        RecallRowView(item: item, stores: [store], isMuted: settings.isProductMuted(item.recall))
                             .contentShape(Rectangle())
                             .onTapGesture { selectedRecall = item }
+                            .muteSwipeAction(for: item, settings: settings)
                     }
                 } footer: {
                     Text("Matched by brand or recalling company. The FDA doesn't say which shelf a product was on — check the details before deciding.")

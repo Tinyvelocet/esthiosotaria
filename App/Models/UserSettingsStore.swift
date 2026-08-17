@@ -14,11 +14,9 @@ final class UserSettingsStore: ObservableObject {
         var handledRecallIDs: [String] = []
         var onboardingComplete: Bool = false
         var chainNotificationsEnabled: Bool = true
-        /// Stores hidden from the recall list's display filter. Matching
-        /// and notifications still run against all selected stores — this
-        /// only affects what's shown, so hiding a store never causes a
-        /// recall to go unnoticed.
-        var hiddenStoreIDs: Set<UUID> = []
+        /// Brand/firm display names the user has marked "not something I
+        /// buy" — see `ProductKey`. Global, not per-store.
+        var mutedProducts: [String] = []
     }
 
     @Published var payload: Payload {
@@ -57,19 +55,6 @@ final class UserSettingsStore: ObservableObject {
 
     func removeStore(_ store: Store) {
         payload.selectedStores.removeAll { $0.id == store.id }
-        payload.hiddenStoreIDs.remove(store.id)
-    }
-
-    func isStoreHidden(_ id: UUID) -> Bool {
-        payload.hiddenStoreIDs.contains(id)
-    }
-
-    func setStoreHidden(_ id: UUID, _ hidden: Bool) {
-        if hidden {
-            payload.hiddenStoreIDs.insert(id)
-        } else {
-            payload.hiddenStoreIDs.remove(id)
-        }
     }
 
     func isHandled(_ recall: Recall) -> Bool {
@@ -88,6 +73,30 @@ final class UserSettingsStore: ObservableObject {
         payload.onboardingComplete = true
     }
 
+    func isProductMuted(_ recall: Recall) -> Bool {
+        ProductKey.isMuted(recall, mutedNames: payload.mutedProducts)
+    }
+
+    /// Mutes a brand/firm by display name (deduped case/whitespace-insensitively).
+    func muteProduct(_ displayName: String) {
+        let trimmed = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let key = ProductKey.normalize(trimmed)
+        guard !payload.mutedProducts.contains(where: { ProductKey.normalize($0) == key }) else { return }
+        payload.mutedProducts.append(trimmed)
+    }
+
+    /// Mutes the brand/firm behind a specific recall, if one can be determined.
+    func muteProduct(from recall: Recall) {
+        guard let name = ProductKey.displayName(for: recall) else { return }
+        muteProduct(name)
+    }
+
+    func unmuteProduct(_ displayName: String) {
+        let key = ProductKey.normalize(displayName)
+        payload.mutedProducts.removeAll { ProductKey.normalize($0) == key }
+    }
+
     // MARK: - Design support
 
     /// Pre-populated store for previews / design gallery (no file I/O).
@@ -96,6 +105,7 @@ final class UserSettingsStore: ObservableObject {
         store.payload.selectedStores = MockData.fourStores
         store.payload.stateAbbrev = "CA"
         store.payload.onboardingComplete = true
+        store.payload.mutedProducts = ["365 Everyday Value"]
         return store
     }
 

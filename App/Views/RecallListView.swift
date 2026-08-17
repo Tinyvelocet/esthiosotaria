@@ -90,11 +90,14 @@ struct RecallListView: View {
         await viewModel.refresh(
             stores: settings.selectedStores,
             stateAbbrev: settings.payload.stateAbbrev,
-            handledIDs: handled)
+            handledIDs: handled,
+            mutedProductNames: settings.payload.mutedProducts)
 
-        // Local notification for brand-new chain matches.
-        if settings.payload.chainNotificationsEnabled, !viewModel.chainMatches.isEmpty {
-            let items = viewModel.chainMatches.map { item in
+        // Local notification for brand-new chain matches — muted products
+        // are exactly the ones the user said they don't want an alert for.
+        let notifiable = viewModel.chainMatches.filter { !settings.isProductMuted($0.recall) }
+        if settings.payload.chainNotificationsEnabled, !notifiable.isEmpty {
+            let items = notifiable.map { item in
                 let names = item.relevance.matchedStoreIDs.compactMap { id in
                     settings.selectedStores.first(where: { $0.id == id })?.name
                 }

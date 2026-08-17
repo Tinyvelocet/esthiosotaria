@@ -42,6 +42,7 @@
 		6EF233FAA50BDD930B2A3440 /* RecallListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74813730C740907548951A4D /* RecallListView.swift */; };
 		6FA29623602DCE0911E55939 /* StoreMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046B3C1199F26FDFB72A5ECF /* StoreMapView.swift */; };
 		70B568ED01C33BBCCCA83791 /* RecallListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31371B9D08F43FB8F7241FF9 /* RecallListViewModel.swift */; };
+		7652C25DC171FC3A25FF484C /* MuteSwipeAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42F6BED3812230500BBCB757 /* MuteSwipeAction.swift */; };
 		790A3E8801A4EAE14B7F403B /* RecallKit in Frameworks */ = {isa = PBXBuildFile; productRef = E997D5264EB446A17E0C3717 /* RecallKit */; };
 		7A3E4665BEDB7D72455BD2A8 /* DesignGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7CF4A520CB609CDEAF93994 /* DesignGalleryView.swift */; };
 		7B9EF0FAD03A7E33FE4C71BC /* OnboardingLocatingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE5C910B53912E00585A0402 /* OnboardingLocatingView.swift */; };
@@ -67,6 +68,7 @@
 		D4B28D07F9ADCBE16204995B /* RecallRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15D98B15FBAD37986B5D1CA /* RecallRowView.swift */; };
 		DCE56BF7209EB052B1F7B07E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD33BDE03B89B9D9FFB068D /* SettingsView.swift */; };
 		DDF42BD256BE64C575781861 /* BackgroundRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DCAFB7F69C370ACA39B507F /* BackgroundRefresh.swift */; };
+		E1B0D72F03275CD52C51BC99 /* MuteSwipeAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42F6BED3812230500BBCB757 /* MuteSwipeAction.swift */; };
 		EA215A350E62A2EC9D9144C0 /* OnboardingWelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5291BB8BAF72FFB0D12BED32 /* OnboardingWelcomeView.swift */; };
 		EE617565AFB7A3AF5823151E /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1936B6CA81431AB498761B14 /* DesignTokens.swift */; };
 		F400F885C541A7441FF0A68E /* DesignGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7CF4A520CB609CDEAF93994 /* DesignGalleryView.swift */; };
@@ -127,6 +129,7 @@
 		31371B9D08F43FB8F7241FF9 /* RecallListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecallListViewModel.swift; sourceTree = "<group>"; };
 		329446C6D595801BA837270C /* StoreDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreDashboardView.swift; sourceTree = "<group>"; };
 		41D66057A787A480252B9CE0 /* RecallDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecallDetailView.swift; sourceTree = "<group>"; };
+		42F6BED3812230500BBCB757 /* MuteSwipeAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuteSwipeAction.swift; sourceTree = "<group>"; };
 		5291BB8BAF72FFB0D12BED32 /* OnboardingWelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWelcomeView.swift; sourceTree = "<group>"; };
 		5465F34631498D6C6FC665FE /* StoreDiscoveryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreDiscoveryService.swift; sourceTree = "<group>"; };
 		5BD33BDE03B89B9D9FFB068D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -245,6 +248,7 @@
 		971987AF4255A40C353DA7A1 /* Recalls */ = {
 			isa = PBXGroup;
 			children = (
+				42F6BED3812230500BBCB757 /* MuteSwipeAction.swift */,
 				41D66057A787A480252B9CE0 /* RecallDetailView.swift */,
 				B15D98B15FBAD37986B5D1CA /* RecallRowView.swift */,
 			);
@@ -492,6 +496,7 @@
 				52A3F53D6405056A8E2F81A8 /* EsthiosotariaApp.swift in Sources */,
 				AF47219554285C16F719CD4C /* LocationService.swift in Sources */,
 				01B539E9269E45EFCC3FA621 /* MockData.swift in Sources */,
+				E1B0D72F03275CD52C51BC99 /* MuteSwipeAction.swift in Sources */,
 				41C95569E511AC2126E0B5CF /* NotificationScheduler.swift in Sources */,
 				50AEF0976A4AE0823A2211FF /* OnboardingLocatingView.swift in Sources */,
 				44D6D13292CE7E809822ABF1 /* OnboardingManualEntryView.swift in Sources */,
@@ -526,6 +531,7 @@
 				96B568137F78A138182E3172 /* EsthiosotariaApp.swift in Sources */,
 				3D9A569BFA5B4A84A7372629 /* LocationService.swift in Sources */,
 				6B002BCDBA7DE745B8DF4ABA /* MockData.swift in Sources */,
+				7652C25DC171FC3A25FF484C /* MuteSwipeAction.swift in Sources */,
 				98A88F3523407D9FC3D06581 /* NotificationScheduler.swift in Sources */,
 				7B9EF0FAD03A7E33FE4C71BC /* OnboardingLocatingView.swift in Sources */,
 				183EA9965CFDFD86A70ED1B5 /* OnboardingManualEntryView.swift in Sources */,

@@ -12,6 +12,7 @@ struct AreaListView: View {
     let lastUpdated: Date?
     let onRefresh: () -> Void
 
+    @EnvironmentObject var settings: UserSettingsStore
     @State private var selectedRecall: RecallListViewModel.Item?
 
     var body: some View {
@@ -28,9 +29,10 @@ struct AreaListView: View {
                                 .foregroundStyle(.secondary)
                         } else {
                             ForEach(items) { item in
-                                RecallRowView(item: item, stores: [])
+                                RecallRowView(item: item, stores: [], isMuted: settings.isProductMuted(item.recall))
                                     .contentShape(Rectangle())
                                     .onTapGesture { selectedRecall = item }
+                                    .muteSwipeAction(for: item, settings: settings)
                             }
                         }
                     } footer: {

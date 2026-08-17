@@ -31,6 +31,8 @@ Support:
 | Danger fill mark (per-store aggregate score, geometric circle) | `App/Design/DangerMark.swift` |
 | Generative scattered-circle background | `App/Design/PatternBackground.swift` |
 | Aggregate danger score formula (pure, tested) | `RecallKit/Sources/RecallKit/Matching/DangerScore.swift` |
+| Brand/firm key for muting "products I don't buy" (pure, tested) | `RecallKit/Sources/RecallKit/Matching/ProductKey.swift` |
+| Mute/unmute swipe action (shared across recall-list screens) | `App/Views/Recalls/MuteSwipeAction.swift` |
 | Mock stores & recalls (realistic, deterministic) | `App/Design/MockData.swift` |
 | All-screens gallery | `App/Design/DesignGalleryView.swift` |
 
@@ -56,6 +58,7 @@ Support:
 - **Onboarding step titles** are `.title2.bold()` — one consistent role for "the title of this step". The Welcome screen is the deliberate exception (`.title.bold()`, since it's the app's first impression and earns the extra size); nothing else should invent a third size for the same job.
 - **`Design.Paper.background` is the screen background everywhere** — set once per screen root (List/Form need `.scrollContentBackground(.hidden)` first since they paint their own system background otherwise). `RootView` sets it at the top level so onboarding inherits it too; don't rely on that alone when adding a new top-level screen outside `RootView`'s tree — set it explicitly.
 - **No manual store filter chips.** The dashboard prioritizes by danger score instead of offering hide/show controls — don't reintroduce per-store filter UI without revisiting that decision.
+- **Muting is by brand/firm, global, and downgrades rather than hides.** Recall *events* never repeat, so "products I don't buy" mutes key off `ProductKey.displayName(for:)` (brand name, falling back to recalling firm) via `UserSettingsStore.payload.mutedProducts` — one flat list, not per-store. A muted recall keeps showing up in its store's list and the Area tab (so the user isn't blind to it if they change their mind) but loses the red "could be at your store" treatment, is excluded from a dashboard tile's active count/danger score, and never triggers a notification or a widget entry. Mute/unmute from `RecallDetailView`'s toggle or the `.muteSwipeAction` on any recall row; review/remove from Settings' "Products you don't buy" section.
 
 ## Home screen architecture (dashboard + area tabs)
 

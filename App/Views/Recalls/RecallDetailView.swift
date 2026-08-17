@@ -26,6 +26,7 @@ struct RecallDetailView: View {
                     }
                 }
                 handledToggle
+                muteToggle
             }
             .padding()
             .frame(maxWidth: 640, alignment: .leading)
@@ -41,9 +42,15 @@ struct RecallDetailView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             if item.isChainMatch {
-                Label("Could be at your store", systemImage: "exclamationmark.triangle.fill")
-                    .font(.subheadline.bold())
-                    .foregroundStyle(Design.Accent.storeMatch)
+                if isMuted {
+                    Label("Muted — you said you don't buy this", systemImage: "bell.slash.fill")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.secondary)
+                } else {
+                    Label("Could be at your store", systemImage: "exclamationmark.triangle.fill")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(Design.Accent.storeMatch)
+                }
                 if !matchedStores.isEmpty {
                     HStack(spacing: 6) {
                         ForEach(matchedStores) { store in
@@ -66,6 +73,8 @@ struct RecallDetailView: View {
         item.relevance.matchedStoreIDs
             .compactMap { id in settings.selectedStores.first(where: { $0.id == id }) }
     }
+
+    private var isMuted: Bool { settings.isProductMuted(item.recall) }
 
     private func section(_ title: String, @ViewBuilder content: () -> some View) -> some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -104,11 +113,39 @@ struct RecallDetailView: View {
         }
         .toggleStyle(.switch)
     }
+
+    /// Only shown when the recall has an identifiable brand/firm to mute —
+    /// absent for the rare synthetic record with neither field.
+    @ViewBuilder
+    private var muteToggle: some View {
+        if let productName = ProductKey.displayName(for: item.recall) {
+            Toggle(isOn: Binding(
+                get: { isMuted },
+                set: { newValue in
+                    if newValue {
+                        settings.muteProduct(productName)
+                    } else {
+                        settings.unmuteProduct(productName)
+                    }
+                }
+            )) {
+                Label("I don't buy \(productName)", systemImage: "bell.slash")
+            }
+            .toggleStyle(.switch)
+        }
+    }
 }
 
 #Preview("Detail — Class I chain match") {
     NavigationStack {
         RecallDetailView(item: MockData.items(for: [MockData.kirklandMadeleines], stores: MockData.fourStores)[0])
+    }
+    .environmentObject(UserSettingsStore.designState())
+}
+
+#Preview("Detail — muted brand") {
+    NavigationStack {
+        RecallDetailView(item: MockData.items(for: [MockData.wfmQuinoa], stores: MockData.fourStores)[0])
     }
     .environmentObject(UserSettingsStore.designState())
 }

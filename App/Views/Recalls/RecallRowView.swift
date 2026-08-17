@@ -13,6 +13,9 @@ import RecallKit
 struct RecallRowView: View {
     let item: RecallListViewModel.Item
     let stores: [Store]
+    /// True when the user marked this recall's brand "not something I buy"
+    /// — downgrades the red escalation styling without hiding the card.
+    var isMuted: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: Design.Spacing.cardGroupGap) {
@@ -36,7 +39,11 @@ struct RecallRowView: View {
             }
 
             if !item.relevance.matchedStoreIDs.isEmpty {
-                storeChips
+                if isMuted {
+                    mutedPill
+                } else {
+                    storeChips
+                }
             }
         }
         .padding(.vertical, Design.Spacing.cardVertical)
@@ -81,6 +88,22 @@ struct RecallRowView: View {
                 .foregroundStyle(Design.Accent.storeMatch)
             }
         }
+    }
+
+    /// Replaces `storeChips` when muted — same "this matched a store" fact,
+    /// but neutral rather than the red escalation signal, since the user
+    /// said this brand isn't something they buy.
+    private var mutedPill: some View {
+        Label("Muted — \(mutedProductLabel)", systemImage: "bell.slash.fill")
+            .font(.caption.weight(.semibold))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(.quaternary, in: Capsule())
+            .foregroundStyle(.secondary)
+    }
+
+    private var mutedProductLabel: String {
+        ProductKey.displayName(for: item.recall) ?? "this product"
     }
 
     private var severityLabel: String {
@@ -159,6 +182,13 @@ struct FlowLayout: Layout {
 #Preview("Card — all severities") {
     List(MockData.items(for: MockData.chainMatchRecalls + MockData.regionalRecalls, stores: MockData.fourStores)) { item in
         RecallRowView(item: item, stores: MockData.fourStores)
+    }
+    .listStyle(.plain)
+}
+
+#Preview("Card — muted brand") {
+    List(MockData.items(for: [MockData.kirklandMadeleines], stores: MockData.fourStores)) { item in
+        RecallRowView(item: item, stores: MockData.fourStores, isMuted: true)
     }
     .listStyle(.plain)
 }
