@@ -2,8 +2,9 @@ import SwiftUI
 import MapKit
 import RecallKit
 
-/// MapKit companion for the store picker. Shows discovered stores as
-/// markers (red = selected), the search center pin, and the radius circle.
+/// MapKit companion for the store picker. Shows discovered stores as their
+/// identity badges (red ring = selected), the search center pin, and the
+/// radius circle.
 ///
 /// Design notes:
 /// - Marker tap toggles selection (same affordance as the list rows).
@@ -64,18 +65,19 @@ struct StoreMapView: View {
                 Button {
                     onToggle?(store)
                 } label: {
-                    Image(systemName: isSelected(store) ? "cart.circle.fill" : "cart.circle")
-                        .font(.title2)
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(.white, isSelected(store) ? Color.red : Color.blue)
+                    StoreBadge(store: store, size: 28, isEmphasized: isSelected(store))
                         .shadow(radius: 2)
                 }
                 .buttonStyle(.plain)
                 .disabled(onToggle == nil || (!isSelected(store) && selectionFull))
+                .opacity(onToggle != nil && !isSelected(store) && selectionFull ? 0.5 : 1)
             }
         }
     }
 
+    // "You are here" stays the system Maps blue-dot convention rather than
+    // the app's store-identity system — it isn't a store, and blue is what
+    // every Maps-based app already trains users to read as "my location".
     private var centerPin: some MapContent {
         Annotation("You", coordinate: center, anchor: .center) {
             Circle()

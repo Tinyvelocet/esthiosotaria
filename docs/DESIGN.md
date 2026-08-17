@@ -11,7 +11,10 @@ Every major UI screen is **isolated in its own file**, renders from **mock data 
 | Onboarding — Manual entry | `App/Views/Onboarding/OnboardingManualEntryView.swift` | normal + error |
 | Onboarding — Store picker (split list+map) | `App/Views/Onboarding/OnboardingStorePickerView.swift` | fresh + 2 selected |
 | Store picker map (MapKit) | `App/Views/Onboarding/StoreMapView.swift` | own preview; needs running app for tiles |
-| **Recall list (home)** | `App/Views/RecallListView.swift` | populated + FSIS-unavailable |
+| **Root (home) coordinator** — gates on load state, hosts the two tabs | `App/Views/RecallListView.swift` | populated + FSIS-unavailable |
+| **Store dashboard** (Stores tab — quadrant grid, one tile per store) | `App/Views/StoreDashboardView.swift` | populated + empty |
+| **Store recall list** (drill-down from a dashboard tile) | `App/Views/StoreRecallListView.swift` | single store |
+| **Area list** (Area tab — regional/nationwide recalls) | `App/Views/AreaListView.swift` | populated |
 | **Recall card** (the repeated element) | `App/Views/Recalls/RecallRowView.swift` | single card + all severities |
 | **Recall detail** | `App/Views/Recalls/RecallDetailView.swift` | chain match + FSIS regional |
 | Settings | `App/Views/SettingsView.swift` | populated + empty |
@@ -23,7 +26,11 @@ Support:
 
 | Purpose | File |
 |---|---|
-| Design tokens (colors, spacing) | `App/Design/DesignTokens.swift` |
+| Design tokens (colors, spacing, radius) | `App/Design/DesignTokens.swift` |
+| Store identity badges (color + monogram) | `App/Design/StoreIdentity.swift` |
+| Danger fill mark (per-store aggregate score, geometric circle) | `App/Design/DangerMark.swift` |
+| Generative scattered-circle background | `App/Design/PatternBackground.swift` |
+| Aggregate danger score formula (pure, tested) | `RecallKit/Sources/RecallKit/Matching/DangerScore.swift` |
 | Mock stores & recalls (realistic, deterministic) | `App/Design/MockData.swift` |
 | All-screens gallery | `App/Design/DesignGalleryView.swift` |
 
@@ -35,11 +42,29 @@ Support:
 
 ## Design constraints (keep these when restyling)
 
-- **Severity is dot + words**, never icon-only: "Critical — Class I", "Serious — Class II", "Minor — Class III". Colorblind-safe palette (red/orange/gray) in `DesignTokens.swift`.
+- **Palette is cream / red / navy**, inspired by the Monoprix rebrand ([wconrandesign.com/work/monoprix-is-back](https://www.wconrandesign.com/work/monoprix-is-back/)) — elegant, minimal, high-contrast, not a generic "app blue" palette. `Design.Paper` (background/surface/line/ink) and `Design.Accent.brand` (navy) live in `DesignTokens.swift`, both light+dark via `Color.dynamic(light:dark:)`. Red is spent entirely on danger — never used as a neutral accent.
+- **Two distinct severity systems, don't conflate them**:
+  - **Per-recall classification** stays discrete, **dot + words**, never icon-only: "Critical — Class I", "Serious — Class II", "Minor — Class III". Colorblind-safe palette (`Design.Severity`: red/orange/gray).
+  - **Per-store aggregate** is a **continuous 0...1 danger score** (`DangerScore.score(for:)` in RecallKit — worst classification dominates, multiple recalls give a small boost, capped at 1.0), rendered as a proportional fill in `DangerMark`. This is a *different signal* (a store's overall risk right now), not a replacement for the per-recall classification.
 - **Copy honesty:** always "could be at your store", never "is".
 - **Icon + text pairing** everywhere (accessibility rule).
 - Store chips on chain matches are red (`Design.Accent.storeMatch`) — they are the escalation signal.
-- The "In your area" section must keep the FSIS-unavailable warning slot (orange `Label`).
+- The "In your area" section (now the **Area tab**, `AreaListView.swift`) must keep the FSIS-unavailable warning slot (orange `Label`).
+- **One interactive tint**, `Design.Accent.brand` (navy), applied once via `.tint(...)` in `EsthiosotariaApp`. Never hardcode `.blue`/`Color.accentColor` in a screen — it silently drifts from this the moment the token changes. The one deliberate exception is `StoreMapView`'s "you are here" dot and radius circle, which stay the system Maps blue by convention, not brand color.
+- **Store identity is a badge, not a color-you-invent-locally**: every place a store is referenced (recall card chips, map markers, the picker, the detail header, dashboard tiles) uses `StoreBadge` from `StoreIdentity.swift` — a deterministic color + monogram per store, so the same store looks the same everywhere. Don't hand-roll a new per-store treatment; extend `StoreIdentity` if it needs a new size or state instead.
+- **Corner radius** is `Design.Radius.card` (12pt) everywhere a rounded rect appears. Don't add a second radius value without a reason.
+- **Onboarding step titles** are `.title2.bold()` — one consistent role for "the title of this step". The Welcome screen is the deliberate exception (`.title.bold()`, since it's the app's first impression and earns the extra size); nothing else should invent a third size for the same job.
+- **`Design.Paper.background` is the screen background everywhere** — set once per screen root (List/Form need `.scrollContentBackground(.hidden)` first since they paint their own system background otherwise). `RootView` sets it at the top level so onboarding inherits it too; don't rely on that alone when adding a new top-level screen outside `RootView`'s tree — set it explicitly.
+- **No manual store filter chips.** The dashboard prioritizes by danger score instead of offering hide/show controls — don't reintroduce per-store filter UI without revisiting that decision.
+
+## Home screen architecture (dashboard + area tabs)
+
+`RecallListView` no longer renders a scrolling list itself — it gates on load state, then hosts a `TabView` with two `NavigationStack`-wrapped tabs:
+
+- **Stores** (`StoreDashboardView`) — a 2-column quadrant grid, one tile per tracked store. Each tile shows that store's `DangerMark` (aggregate score fill) and `StoreBadge`; tapping drills into `StoreRecallListView` for that store's actual recall rows.
+- **Area** (`AreaListView`) — everything regional/nationwide, not tied to a specific store. Split out because a store-quadrant grid has no natural home for data that isn't about a store.
+
+`PatternBackground`'s density (`intensity`) tracks the worst danger score across all tracked stores — the background gets busier, not just the tiles, when something is more dangerous. It's `.allowsHitTesting(false)` and purely decorative — never encode information only in the pattern that isn't also in a tile.
 
 ## Widget architecture (widget-first product)
 

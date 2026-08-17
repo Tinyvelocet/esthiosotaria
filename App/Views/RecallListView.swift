@@ -1,15 +1,12 @@
 import SwiftUI
 import RecallKit
 
-/// Main screen: chain matches pinned on top under "Could be at your stores",
-/// regional recalls below. The coordinator owns fetching/state; the cards are
-/// `RecallRowView` (design surface in `Views/Recalls/RecallRowView.swift`).
-///
-/// All copy says "could be at your store" — never certainty.
+/// Root coordinator after onboarding: owns fetching/state, hands data to
+/// two tabs — the store dashboard (quadrant grid) and the area list
+/// (regional matches, not tied to any specific store).
 struct RecallListView: View {
     @EnvironmentObject var settings: UserSettingsStore
     @StateObject private var viewModel = RecallListViewModel()
-    @State private var selectedRecall: RecallListViewModel.Item?
     @State private var notifiedIDs: Set<String> = []
 
     /// Design/preview injection point (nil = live view model).
@@ -24,34 +21,11 @@ struct RecallListView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            content
-                .navigationTitle("Recalls near you")
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button {
-                            Task { await refresh() }
-                        } label: {
-                            Image(systemName: "arrow.clockwise")
-                        }
-                        .help("Refresh recalls")
-                    }
-                    ToolbarItem(placement: .secondaryAction) {
-                        NavigationLink {
-                            SettingsView()
-                        } label: {
-                            Image(systemName: "gearshape")
-                        }
-                    }
-                }
-                .navigationDestination(item: $selectedRecall) { item in
-                    RecallDetailView(item: item)
-                }
-        }
-        .task {
-            guard designViewModel == nil else { return }
-            await refresh()
-        }
+        content
+            .task {
+                guard designViewModel == nil else { return }
+                await refresh()
+            }
     }
 
     @ViewBuilder
@@ -61,6 +35,7 @@ struct RecallListView: View {
         case .idle, .loading:
             ProgressView("Checking FDA recalls…")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Design.Paper.background)
         case .failed(let message):
             VStack(spacing: 12) {
                 Image(systemName: "wifi.exclamationmark")
@@ -77,119 +52,37 @@ struct RecallListView: View {
             }
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Design.Paper.background)
         case .loaded:
-            loadedList
+            tabs
         }
     }
 
-    private var loadedList: some View {
-        VStack(spacing: 0) {
-            if settings.selectedStores.count > 1 {
-                storeFilterRow
-                Divider()
-            }
-            recallSections
-        }
-    }
-
-    private var recallSections: some View {
+    private var tabs: some View {
         let vm = effectiveViewModel
-        return List {
-            if !vm.chainMatches.isEmpty {
-                Section {
-                    if visibleChainMatches.isEmpty {
-                        Text("All matching stores are hidden — tap a chip above to show them.")
-                            .foregroundStyle(.secondary)
-                    } else {
-                        ForEach(visibleChainMatches) { item in
-                            RecallRowView(item: item, stores: settings.selectedStores)
-                                .contentShape(Rectangle())
-                                .onTapGesture { selectedRecall = item }
-                        }
-                    }
-                } header: {
-                    Label("Could be at your stores", systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(Design.Accent.storeMatch)
-                } footer: {
-                    Text("Matched by brand or recalling company. The FDA doesn't say which shelf a product was on — check the details before deciding.")
-                }
+        return TabView {
+            NavigationStack {
+                StoreDashboardView(
+                    stores: settings.selectedStores,
+                    chainMatches: vm.chainMatches,
+                    isLoading: vm.isLoading,
+                    lastUpdated: vm.lastUpdated,
+                    onRefresh: { Task { await refresh() } }
+                )
             }
+            .tabItem { Label("Stores", systemImage: "square.grid.2x2.fill") }
 
-            Section {
-                if vm.regionalMatches.isEmpty && vm.chainMatches.isEmpty {
-                    Text("No active recalls match your area right now.")
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(vm.regionalMatches) { item in
-                        RecallRowView(item: item, stores: settings.selectedStores)
-                            .contentShape(Rectangle())
-                            .onTapGesture { selectedRecall = item }
-                    }
-                }
-            } header: {
-                Text("In your area")
-            } footer: {
-                VStack(alignment: .leading, spacing: 4) {
-                    if vm.fsisUnavailable {
-                        Label("USDA meat/poultry feed unavailable — FDA recalls shown only.",
-                              systemImage: "exclamationmark.circle")
-                            .font(.caption)
-                            .foregroundStyle(Design.Accent.warning)
-                    }
-                    if let lastUpdated = vm.lastUpdated {
-                        Text("Updated \(lastUpdated.formatted(date: .omitted, time: .shortened)). FDA data may lag the official recall site by days.")
-                    }
-                }
+            NavigationStack {
+                AreaListView(
+                    items: vm.regionalMatches,
+                    isLoading: vm.isLoading,
+                    fsisUnavailable: vm.fsisUnavailable,
+                    lastUpdated: vm.lastUpdated,
+                    onRefresh: { Task { await refresh() } }
+                )
             }
+            .tabItem { Label("Area", systemImage: "map.fill") }
         }
-        #if os(iOS)
-        .listStyle(.insetGrouped)
-        .refreshable { await refresh() }
-        #endif
-    }
-
-    /// Chain matches touching at least one currently visible store.
-    /// Regional matches aren't store-specific, so the filter never touches
-    /// them — hiding a store only narrows "could be at your stores".
-    private var visibleChainMatches: [RecallListViewModel.Item] {
-        effectiveViewModel.chainMatches.filter { item in
-            item.relevance.matchedStoreIDs.contains { !settings.isStoreHidden($0) }
-        }
-    }
-
-    /// One toggle chip per tracked store — a display-only filter. Hiding a
-    /// store never affects matching or notifications, only what's shown
-    /// here right now.
-    private var storeFilterRow: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(settings.selectedStores) { store in
-                    storeFilterChip(store)
-                }
-            }
-            .padding(.horizontal, Design.Spacing.screenPadding)
-        }
-        .padding(.vertical, 8)
-    }
-
-    private func storeFilterChip(_ store: Store) -> some View {
-        let isVisible = !settings.isStoreHidden(store.id)
-        return Button {
-            settings.setStoreHidden(store.id, isVisible)
-        } label: {
-            HStack(spacing: 5) {
-                Image(systemName: isVisible ? "checkmark.circle.fill" : "circle")
-                Text(store.name)
-                    .lineLimit(1)
-            }
-            .font(.caption.weight(.medium))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(isVisible ? Color.accentColor.opacity(0.15) : Color.clear, in: Capsule())
-            .overlay(Capsule().strokeBorder(isVisible ? Color.clear : Color.secondary.opacity(0.4)))
-            .foregroundStyle(isVisible ? Color.accentColor : Color.secondary)
-        }
-        .buttonStyle(.plain)
     }
 
     private func refresh() async {
@@ -214,6 +107,10 @@ struct RecallListView: View {
             }
         }
     }
+}
+
+private extension RecallListViewModel {
+    var isLoading: Bool { state == .loading }
 }
 
 #Preview("Recall list — populated") {

@@ -31,6 +31,7 @@ struct RecallDetailView: View {
             .frame(maxWidth: 640, alignment: .leading)
             .frame(maxWidth: .infinity)
         }
+        .background(Design.Paper.background)
         .navigationTitle("Recall details")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -43,13 +44,27 @@ struct RecallDetailView: View {
                 Label("Could be at your store", systemImage: "exclamationmark.triangle.fill")
                     .font(.subheadline.bold())
                     .foregroundStyle(Design.Accent.storeMatch)
+                if !matchedStores.isEmpty {
+                    HStack(spacing: 6) {
+                        ForEach(matchedStores) { store in
+                            StoreBadge(store: store, size: 22)
+                        }
+                    }
+                }
             }
             Text(item.recall.recallingFirm ?? "Unknown company")
-                .font(.title3.bold())
+                .font(.title2.bold())
+                .tracking(-0.3)
+                .foregroundStyle(Design.Paper.ink)
             Text("Recall \(item.recall.id)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    private var matchedStores: [Store] {
+        item.relevance.matchedStoreIDs
+            .compactMap { id in settings.selectedStores.first(where: { $0.id == id }) }
     }
 
     private func section(_ title: String, @ViewBuilder content: () -> some View) -> some View {

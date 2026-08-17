@@ -16,7 +16,7 @@ struct OnboardingLocatingView: View {
                     .font(.system(size: 44))
                     .foregroundStyle(.secondary)
                 Text("Location access was denied")
-                    .font(.title3.bold())
+                    .font(.title2.bold())
                 Text("No problem — type your city instead. Nothing is sent anywhere.")
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -26,7 +26,8 @@ struct OnboardingLocatingView: View {
                 ProgressView()
                     .controlSize(.large)
                 Text("Finding your location…")
-                    .font(.title3)
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
             }
         }
     }

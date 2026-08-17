@@ -89,7 +89,7 @@ struct OnboardingStorePickerView: View {
             VStack(spacing: Design.Spacing.sectionGap) {
                 mapSection
                     .frame(height: 260)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .clipShape(RoundedRectangle(cornerRadius: Design.Radius.card))
                 storeList
             }
         } else {
@@ -99,7 +99,7 @@ struct OnboardingStorePickerView: View {
                     .frame(minWidth: 300, idealWidth: 340, maxWidth: 400)
                 mapSection
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .clipShape(RoundedRectangle(cornerRadius: Design.Radius.card))
             }
         }
     }
@@ -119,7 +119,7 @@ struct OnboardingStorePickerView: View {
             )
         } else {
             // No coordinate (defensive): keep the slot visible but inert.
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: Design.Radius.card)
                 .fill(.quaternary)
                 .overlay(
                     Label("Map unavailable", systemImage: "map")
@@ -205,8 +205,7 @@ struct StoreRowView: View {
     var body: some View {
         Button(action: action) {
             HStack {
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+                StoreBadge(store: store, size: 24)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(store.name)
                         .foregroundStyle(.primary)
@@ -216,6 +215,9 @@ struct StoreRowView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                Spacer(minLength: 8)
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
             }
         }
         .buttonStyle(.plain)

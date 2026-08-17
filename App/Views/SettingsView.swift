@@ -89,6 +89,8 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Design.Paper.background)
         .navigationTitle("Settings")
     }
 

@@ -10,14 +10,15 @@ struct EsthiosotariaApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if DesignGalleryView.showAtLaunch {
-                NavigationStack {
-                    DesignGalleryView()
+            Group {
+                if DesignGalleryView.showAtLaunch {
+                    NavigationStack { DesignGalleryView() }
+                } else {
+                    RootView()
+                        .environmentObject(settings)
                 }
-            } else {
-                RootView()
-                    .environmentObject(settings)
             }
+            .tint(Design.Accent.brand)
         }
         #if os(macOS)
         // Free resizing with a sane floor. (.contentSize would lock the

@@ -63,23 +63,22 @@ struct RecallRowView: View {
     }
 
     /// Matched stores as individual red capsules (the escalation signal),
-    /// wrapping onto multiple lines rather than one truncated, comma-joined
-    /// caption — up to 4 stores can match, and names run long.
+    /// each carrying that store's own identity badge so it's recognizable
+    /// at a glance — wrapping onto multiple lines rather than one
+    /// truncated, comma-joined caption, since up to 4 stores can match
+    /// and names run long.
     private var storeChips: some View {
-        HStack(alignment: .top, spacing: 6) {
-            Image(systemName: "storefront.fill")
-                .font(.caption)
-                .foregroundStyle(Design.Accent.storeMatch)
-                .padding(.top, 3)
-            FlowLayout(spacing: 6) {
-                ForEach(matchedStoreNames, id: \.self) { name in
-                    Text(name)
+        FlowLayout(spacing: 6) {
+            ForEach(matchedStores) { store in
+                HStack(spacing: 5) {
+                    StoreBadge(store: store, size: 14)
+                    Text(store.name)
                         .font(.caption.weight(.semibold))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Design.Accent.storeMatch.opacity(0.15), in: Capsule())
-                        .foregroundStyle(Design.Accent.storeMatch)
                 }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Design.Accent.storeMatch.opacity(0.15), in: Capsule())
+                .foregroundStyle(Design.Accent.storeMatch)
             }
         }
     }
@@ -102,9 +101,9 @@ struct RecallRowView: View {
         }
     }
 
-    private var matchedStoreNames: [String] {
+    private var matchedStores: [Store] {
         item.relevance.matchedStoreIDs
-            .compactMap { id in stores.first(where: { $0.id == id })?.name }
+            .compactMap { id in stores.first(where: { $0.id == id }) }
     }
 }
 

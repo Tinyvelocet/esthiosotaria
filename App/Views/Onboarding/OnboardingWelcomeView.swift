@@ -9,9 +9,9 @@ struct OnboardingWelcomeView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Image(systemName: "cart.badge.exclamationmark")
+            Image(systemName: "cart.fill")
                 .font(.system(size: 56))
-                .foregroundStyle(.tint)
+                .foregroundStyle(Design.Accent.brand)
             Text("Food recalls for your stores")
                 .font(.title.bold())
                 .multilineTextAlignment(.center)

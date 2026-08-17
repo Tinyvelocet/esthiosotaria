@@ -13,6 +13,7 @@ struct RootView: View {
                 OnboardingView()
             }
         }
+        .background(Design.Paper.background)
         #if os(macOS)
         // Floor for .windowResizability(.contentMinSize): keeps the window
         // resizable while preventing unusably small sizes.
