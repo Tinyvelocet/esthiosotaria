@@ -2,8 +2,11 @@ import SwiftUI
 import RecallKit
 
 /// Root coordinator after onboarding: owns fetching/state, hands data to
-/// two tabs — the store dashboard (quadrant grid) and the area list
-/// (regional matches, not tied to any specific store).
+/// the single-destination store dashboard. There's no separate "browse
+/// everything nearby" tab — that framed a full unfiltered regional feed
+/// as equally important as your own stores. Serious (Class I/II) regional
+/// recalls surface as a small section on the dashboard instead; the full
+/// log is one opt-in tap away, not a competing primary destination.
 struct RecallListView: View {
     @EnvironmentObject var settings: UserSettingsStore
     @StateObject private var viewModel = RecallListViewModel()
@@ -54,39 +57,18 @@ struct RecallListView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Design.Paper.background)
         case .loaded:
-            tabs
-        }
-    }
-
-    private var tabs: some View {
-        let vm = effectiveViewModel
-        return TabView {
             NavigationStack {
                 StoreDashboardView(
                     stores: settings.selectedStores,
                     chainMatches: vm.chainMatches,
-                    isLoading: vm.isLoading,
-                    lastUpdated: vm.lastUpdated,
-                    onRefresh: { Task { await refresh() } }
-                )
-            }
-            .tabItem { Label("Stores", systemImage: "square.grid.2x2.fill") }
-
-            NavigationStack {
-                AreaListView(
-                    items: vm.regionalMatches,
+                    regionalMatches: vm.regionalMatches,
                     isLoading: vm.isLoading,
                     fsisUnavailable: vm.fsisUnavailable,
                     lastUpdated: vm.lastUpdated,
                     onRefresh: { Task { await refresh() } }
                 )
             }
-            .tabItem { Label("Area", systemImage: "map.fill") }
         }
-        #if os(iOS)
-        .toolbarBackground(Design.Paper.surface, for: .tabBar)
-        .toolbarBackground(.visible, for: .tabBar)
-        #endif
     }
 
     private func refresh() async {
@@ -97,11 +79,17 @@ struct RecallListView: View {
             handledIDs: handled,
             mutedProductNames: settings.payload.mutedProducts)
 
-        // Local notification for brand-new chain matches — muted products
-        // are exactly the ones the user said they don't want an alert for.
-        let notifiable = viewModel.chainMatches.filter { !settings.isProductMuted($0.recall) }
-        if settings.payload.chainNotificationsEnabled, !notifiable.isEmpty {
-            let items = notifiable.map { item in
+        guard settings.payload.chainNotificationsEnabled else { return }
+
+        // Chain matches: muted products don't notify, and neither does
+        // anything below the Class I/II bar — a Class III alert every
+        // time is exactly the fatigue that makes people stop reading the
+        // one that's actually serious.
+        let notifiableChain = viewModel.chainMatches.filter {
+            !settings.isProductMuted($0.recall) && AlertPolicy.warrantsNotification($0.recall)
+        }
+        if !notifiableChain.isEmpty {
+            let items = notifiableChain.map { item in
                 let names = item.relevance.matchedStoreIDs.compactMap { id in
                     settings.selectedStores.first(where: { $0.id == id })?.name
                 }
@@ -109,9 +97,20 @@ struct RecallListView: View {
             }
             let notified = await NotificationScheduler.notifyNewChainMatches(
                 items, seenIDs: notifiedIDs)
-            if !notified.isEmpty {
-                notifiedIDs.formUnion(notified)
-            }
+            notifiedIDs.formUnion(notified)
+        }
+
+        // Regional matches only notify when they clear the same severity
+        // bar — this is the same threshold that puts them in the
+        // dashboard's "Serious recalls in your area" section, so a
+        // notification always corresponds to something visible there.
+        let notifiableRegional = viewModel.regionalMatches
+            .map(\.recall)
+            .filter { !settings.isProductMuted($0) && AlertPolicy.warrantsNotification($0) }
+        if !notifiableRegional.isEmpty {
+            let notified = await NotificationScheduler.notifyNewRegionalMatches(
+                notifiableRegional, seenIDs: notifiedIDs)
+            notifiedIDs.formUnion(notified)
         }
     }
 }

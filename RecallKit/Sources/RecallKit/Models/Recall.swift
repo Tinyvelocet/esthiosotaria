@@ -18,7 +18,7 @@ public struct Recall: Codable, Identifiable, Equatable, Hashable, Sendable {
     }
 
     /// FDA classification of a recall's health risk.
-    public enum Classification: String, Codable, Sendable {
+    public enum Classification: String, Codable, Sendable, Comparable {
         case classI = "Class I"
         case classII = "Class II"
         case classIII = "Class III"
@@ -28,6 +28,21 @@ public struct Recall: Codable, Identifiable, Equatable, Hashable, Sendable {
         public init(from decoder: Decoder) throws {
             let raw = try decoder.singleValueContainer().decode(String.self)
             self = Classification(rawValue: raw) ?? .unknown
+        }
+
+        /// Class I is the most severe; `min()` over a set of active
+        /// classifications gives the single worst one.
+        private var severityRank: Int {
+            switch self {
+            case .classI: return 0
+            case .classII: return 1
+            case .classIII: return 2
+            case .unknown: return 3
+            }
+        }
+
+        public static func < (lhs: Self, rhs: Self) -> Bool {
+            lhs.severityRank < rhs.severityRank
         }
     }
 

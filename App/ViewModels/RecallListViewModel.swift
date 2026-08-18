@@ -91,12 +91,17 @@ final class RecallListViewModel: ObservableObject {
     /// widget can render without doing its own network calls. Muted
     /// products are left out entirely — the widget is a glance surface
     /// with no way to review/unmute, so it should only ever show what's
-    /// actually urgent.
+    /// actually urgent. Regional items are further limited to the same
+    /// Class I/II bar the dashboard's "serious recalls in your area"
+    /// section uses — the widget has no opt-in deep dive to hold the full
+    /// feed, so it should never show more than the app's own default view.
     private func publishSnapshot(chain: [Item], regional: [Item], stateAbbrev: String, mutedProductNames: [String]) {
         guard let cache = RecallCache() else { return } // entitlement missing — degrade silently
         let storeNames: [UUID: String] = Dictionary(uniqueKeysWithValues: stores.map { ($0.id, $0.name) })
         let activeChain = chain.filter { !ProductKey.isMuted($0.recall, mutedNames: mutedProductNames) }
-        let activeRegional = regional.filter { !ProductKey.isMuted($0.recall, mutedNames: mutedProductNames) }
+        let activeRegional = regional.filter {
+            !ProductKey.isMuted($0.recall, mutedNames: mutedProductNames) && AlertPolicy.warrantsNotification($0.recall)
+        }
         let snapshot = RecallSnapshot(
             generatedAt: Date(),
             stateAbbrev: stateAbbrev,
