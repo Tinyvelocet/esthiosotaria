@@ -6,12 +6,25 @@ import CoreLocation
 @MainActor
 final class LocationService: NSObject, ObservableObject {
 
-    enum LocationStatus {
+    enum LocationStatus: Equatable {
         case idle
         case requesting
         case granted(CLLocationCoordinate2D)
         case denied
         case failed(String)
+
+        static func == (lhs: LocationStatus, rhs: LocationStatus) -> Bool {
+            switch (lhs, rhs) {
+            case (.idle, .idle), (.requesting, .requesting), (.denied, .denied):
+                return true
+            case (.granted(let a), .granted(let b)):
+                return a.latitude == b.latitude && a.longitude == b.longitude
+            case (.failed(let a), .failed(let b)):
+                return a == b
+            default:
+                return false
+            }
+        }
     }
 
     @Published var status: LocationStatus = .idle

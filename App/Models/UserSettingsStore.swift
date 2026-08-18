@@ -14,6 +14,8 @@ final class UserSettingsStore: ObservableObject {
         var handledRecallIDs: [String] = []
         var onboardingComplete: Bool = false
         var chainNotificationsEnabled: Bool = true
+        /// "Notify me when I enter one of my stores" — CoreLocation geofencing.
+        var entryNotificationsEnabled: Bool = false
         /// Brand/firm display names the user has marked "not something I
         /// buy" — see `ProductKey`. Global, not per-store.
         var mutedProducts: [String] = []
@@ -23,7 +25,7 @@ final class UserSettingsStore: ObservableObject {
 
         enum CodingKeys: String, CodingKey {
             case selectedStores, radiusMiles, stateAbbrev, handledRecallIDs
-            case onboardingComplete, chainNotificationsEnabled, mutedProducts
+            case onboardingComplete, chainNotificationsEnabled, entryNotificationsEnabled, mutedProducts
         }
 
         /// Backward-compatible decode: every key is optional and falls back
@@ -41,6 +43,7 @@ final class UserSettingsStore: ObservableObject {
             handledRecallIDs = try c.decodeIfPresent([String].self, forKey: .handledRecallIDs) ?? []
             onboardingComplete = try c.decodeIfPresent(Bool.self, forKey: .onboardingComplete) ?? false
             chainNotificationsEnabled = try c.decodeIfPresent(Bool.self, forKey: .chainNotificationsEnabled) ?? true
+            entryNotificationsEnabled = try c.decodeIfPresent(Bool.self, forKey: .entryNotificationsEnabled) ?? false
             mutedProducts = try c.decodeIfPresent([String].self, forKey: .mutedProducts) ?? []
         }
     }

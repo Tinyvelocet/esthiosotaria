@@ -44,6 +44,7 @@
 		DDF42BD256BE64C575781861 /* BackgroundRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DCAFB7F69C370ACA39B507F /* BackgroundRefresh.swift */; };
 		E1B0D72F03275CD52C51BC99 /* MuteSwipeAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42F6BED3812230500BBCB757 /* MuteSwipeAction.swift */; };
 		EE617565AFB7A3AF5823151E /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1936B6CA81431AB498761B14 /* DesignTokens.swift */; };
+		F2AB7D50E9F3C8AF28D05509 /* StoreGeofenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D9C5573BD647DCDE44233F2 /* StoreGeofenceService.swift */; };
 		F4CAD5E795C3BDB381D74551 /* OnboardingWelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5291BB8BAF72FFB0D12BED32 /* OnboardingWelcomeView.swift */; };
 		FB9D1101C175227806D208DE /* RecallDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D66057A787A480252B9CE0 /* RecallDetailView.swift */; };
 		FDC9B6CFE3D7319E24FABE74 /* StoreDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5465F34631498D6C6FC665FE /* StoreDiscoveryService.swift */; };
@@ -79,6 +80,7 @@
 		09E0F62005EBAFD255D5F925 /* DangerMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DangerMark.swift; sourceTree = "<group>"; };
 		128754466058823F83FA5B7D /* RecallMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecallMark.swift; sourceTree = "<group>"; };
 		1936B6CA81431AB498761B14 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
+		1D9C5573BD647DCDE44233F2 /* StoreGeofenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreGeofenceService.swift; sourceTree = "<group>"; };
 		1E28F0EE43C635A8E39CE955 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		2C8304011099B618A0C12BAB /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
 		31371B9D08F43FB8F7241FF9 /* RecallListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecallListViewModel.swift; sourceTree = "<group>"; };
@@ -180,6 +182,7 @@
 				749AC61E5D7802C215876034 /* LocationService.swift */,
 				2C8304011099B618A0C12BAB /* NotificationScheduler.swift */,
 				5465F34631498D6C6FC665FE /* StoreDiscoveryService.swift */,
+				1D9C5573BD647DCDE44233F2 /* StoreGeofenceService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -426,6 +429,7 @@
 				DCE56BF7209EB052B1F7B07E /* SettingsView.swift in Sources */,
 				54ECFB2B7DDC1B982FC37EDA /* StoreDashboardView.swift in Sources */,
 				FDC9B6CFE3D7319E24FABE74 /* StoreDiscoveryService.swift in Sources */,
+				F2AB7D50E9F3C8AF28D05509 /* StoreGeofenceService.swift in Sources */,
 				B70F92E3BA99C075B896A8C1 /* StoreIdentity.swift in Sources */,
 				6FA29623602DCE0911E55939 /* StoreMapView.swift in Sources */,
 				D049C5F9D574EB7C3547D0E1 /* StoreRecallListView.swift in Sources */,

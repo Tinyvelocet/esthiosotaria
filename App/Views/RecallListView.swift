@@ -28,6 +28,15 @@ struct RecallListView: View {
             .task {
                 guard designViewModel == nil else { return }
                 await refresh()
+                // Re-register geofences on launch if store-entry alerts are on
+                // (e.g. re-entering the app after they were enabled in Settings).
+                if settings.payload.entryNotificationsEnabled {
+                    StoreGeofenceService.shared.syncRegions(for: settings.selectedStores)
+                }
+            }
+            .onChange(of: settings.payload.selectedStores) { _, _ in
+                guard settings.payload.entryNotificationsEnabled else { return }
+                StoreGeofenceService.shared.syncRegions(for: settings.selectedStores)
             }
     }
 

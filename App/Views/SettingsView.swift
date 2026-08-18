@@ -6,6 +6,7 @@ import RecallKit
 struct SettingsView: View {
     @EnvironmentObject var settings: UserSettingsStore
     @StateObject private var discovery = StoreDiscoveryService()
+    @StateObject private var location = LocationService()
     @State private var manualCity = ""
     @State private var geocodeError: String?
     @State private var newMutedProduct = ""
@@ -46,6 +47,14 @@ struct SettingsView: View {
             }
 
             Section {
+                Button {
+                    Task { await scanAtCurrentLocation() }
+                } label: {
+                    Label(location.status == .requesting ? "Locating…" : "Use my current location",
+                          systemImage: "location.fill")
+                }
+                .buttonStyle(.appSecondary)
+                .disabled(location.status == .requesting)
                 HStack {
                     TextField("City or ZIP to search", text: $manualCity)
                         .textFieldStyle(.roundedBorder)
@@ -116,7 +125,7 @@ struct SettingsView: View {
             }
 
             Section {
-                Toggle("Notify me about store matches", isOn: Binding(
+                Toggle("Notify me about recall matches", isOn: Binding(
                     get: { settings.payload.chainNotificationsEnabled },
                     set: { newValue in
                         settings.payload.chainNotificationsEnabled = newValue
@@ -125,6 +134,13 @@ struct SettingsView: View {
                         }
                     }
                 ))
+                Toggle("Notify me when I enter a store", isOn: Binding(
+                    get: { settings.payload.entryNotificationsEnabled },
+                    set: { setEntryNotifications($0) }
+                ))
+                Text("Fires when you're near one of your tracked stores. Needs “Always” location access and a real device (the Simulator can't monitor regions).")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             } header: {
                 sectionHeader("Notifications")
             }
@@ -138,6 +154,10 @@ struct SettingsView: View {
             } header: {
                 sectionHeader("About")
             }
+        }
+        .onChange(of: settings.payload.selectedStores) { _, _ in
+            guard settings.payload.entryNotificationsEnabled else { return }
+            StoreGeofenceService.shared.syncRegions(for: settings.selectedStores)
         }
         .scrollContentBackground(.hidden)
         .background(Design.Paper.background)
@@ -164,6 +184,33 @@ struct SettingsView: View {
                     geocodeError = "Couldn't find that place."
                 }
             }
+        }
+    }
+
+    /// Discovers stores around the device's current location ("scan a store".
+    private func scanAtCurrentLocation() async {
+        geocodeError = nil
+        do {
+            let coordinate = try await location.requestCurrentLocation()
+            await discovery.discoverStores(near: coordinate, radiusMiles: settings.radiusMiles)
+        } catch {
+            geocodeError = error.localizedDescription
+        }
+    }
+
+    /// Toggles CoreLocation geofencing; asks for "Always" access on first enable.
+    private func setEntryNotifications(_ on: Bool) {
+        settings.payload.entryNotificationsEnabled = on
+        let geofence = StoreGeofenceService.shared
+        if on {
+            // Ask for Always auth (region monitoring needs it for background
+            // delivery). syncRegions registers immediately — regions work in
+            // the foreground on WhenInUse and upgrade to background delivery
+            // once the user grants Always, so no re-sync is required later.
+            geofence.requestAlwaysAuthorizationIfNeeded()
+            geofence.syncRegions(for: settings.selectedStores)
+        } else {
+            geofence.stopAll()
         }
     }
 }
