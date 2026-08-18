@@ -5,7 +5,7 @@ import RecallKit
 /// snapshot tests. No network required — all screens render offline.
 enum MockData {
 
-    // MARK: - Stores (Pierre's real four)
+    // MARK: - Stores (sample set)
 
     static let costco = Store(id: UUID(uuidString: "00000000-0000-0000-0000-0000000000C1")!,
                               name: "Costco Wholesale (Mountain View)", chain: "costco",

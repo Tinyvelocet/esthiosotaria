@@ -19,13 +19,18 @@ Food recalls are published constantly (~1,400 FDA recalls/year), but only a frac
 ## Privacy
 
 - No server, no account, no telemetry.
-- Your location is used only to query store databases and is never transmitted.
+- Your location is used only to query store databases: Apple MapKit and OSM
+  Overpass receive the coordinates needed for a local store search. They are
+  never stored, uploaded to any server you control, or shared beyond those
+  public services.
 - Data sources: [openFDA enforcement API](https://open.fda.gov/apis/food/enforcement/), [OSM Overpass](https://overpass-api.de), Apple MapKit — all public, keyless at this usage level.
 
 ## Known limitations (by design, stated honestly)
 
 - **openFDA lags** the live FDA recall site by days–weeks (it is batch-indexed).
-- **Meat/poultry/egg (USDA FSIS)** recalls are not ingested yet (their API is bot-gated; tracked as the next data-source phase).
+- **USDA FSIS** (meat/poultry/egg) recalls are ingested from the FSIS RSS feed.
+  FSIS's site bot-gates some datacenter IPs, so on those networks meat coverage
+  may be incomplete — the app still shows FDA data and flags the gap.
 - Independent stores (no chain brand) match only at the regional tier — there is no public feed saying which items an independent store stocks.
 
 ## Build
@@ -64,11 +69,19 @@ App/                  Shared SwiftUI layer (iOS + macOS targets)
 
 ## Roadmap
 
-- [ ] USDA FSIS (meat/poultry/egg) ingestion
+- [x] USDA FSIS (meat/poultry/egg) ingestion
 - [ ] Faster feeds (FDA listing page / RSS) to close the openFDA lag
 - [ ] CloudKit sync + cross-device notification delivery (iOS silent push; macOS polls)
 - [ ] Tier-2 brand→category matching (e.g. soft cheese → gourmet grocers)
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+[Creative Commons Attribution-NonCommercial 4.0 (CC BY-NC 4.0)](LICENSE).
+
+You are free to use, modify, and redistribute the source for **non-commercial
+purposes** (with attribution). Commercial use — including building or selling a
+commercial product from this code, or an adaptation of it — is permitted only
+under a separate commercial license granted by the author.
+
+The core branding, app icon, and any Apple-provided system assets are not
+covered by this license.

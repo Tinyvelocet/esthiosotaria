@@ -1,5 +1,5 @@
 // End-to-end smoke test: live FDA data through the real matching engine,
-// simulating Pierre's setup (Bay Area, CA — Costco, Whole Foods, Piazza's, Trader Joe's).
+// simulating a Bay Area user's setup (Costco, Whole Foods, Piazza's, Trader Joe's).
 import Foundation
 
 // Load RecallKit sources directly for the smoke run.
