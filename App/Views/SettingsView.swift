@@ -12,7 +12,7 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("Your stores") {
+            Section {
                 ForEach(settings.selectedStores) { store in
                     HStack {
                         VStack(alignment: .leading) {
@@ -28,24 +28,29 @@ struct SettingsView: View {
                             settings.removeStore(store)
                         } label: {
                             Image(systemName: "trash")
-                                .foregroundStyle(.red)
+                                .foregroundStyle(Design.Severity.critical)
+                                .frame(minWidth: 44, minHeight: 44)
+                                .contentShape(Rectangle())
                         }
                         .buttonStyle(.borderless)
                         .help("Remove store")
+                        .accessibilityLabel("Remove \(store.name)")
                     }
                 }
                 if settings.selectedStores.isEmpty {
                     Text("No stores selected. Add one below.")
                         .foregroundStyle(.secondary)
                 }
+            } header: {
+                sectionHeader("Your stores")
             }
 
-            Section("Add a store") {
+            Section {
                 HStack {
                     TextField("City or ZIP to search", text: $manualCity)
                         .textFieldStyle(.roundedBorder)
                     Button("Search") { searchNearCity() }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.appSecondary)
                         .disabled(manualCity.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
                 if let geocodeError {
@@ -68,6 +73,8 @@ struct SettingsView: View {
                         .disabled(settings.selectedStores.count >= RecallKit.maxSelectedStores)
                     }
                 }
+            } header: {
+                sectionHeader("Add a store")
             }
 
             Section {
@@ -79,10 +86,13 @@ struct SettingsView: View {
                             settings.unmuteProduct(product)
                         } label: {
                             Image(systemName: "trash")
-                                .foregroundStyle(.red)
+                                .foregroundStyle(Design.Severity.critical)
+                                .frame(minWidth: 44, minHeight: 44)
+                                .contentShape(Rectangle())
                         }
                         .buttonStyle(.borderless)
                         .help("Remove from muted products")
+                        .accessibilityLabel("Unmute \(product)")
                     }
                 }
                 if settings.payload.mutedProducts.isEmpty {
@@ -96,16 +106,16 @@ struct SettingsView: View {
                         settings.muteProduct(newMutedProduct)
                         newMutedProduct = ""
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.appSecondary)
                     .disabled(newMutedProduct.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             } header: {
-                Text("Products you don't buy")
+                sectionHeader("Products you don't buy")
             } footer: {
                 Text("Muted products won't trigger notifications or the red \"could be at your store\" alert, but their recalls still show up in your store's list.")
             }
 
-            Section("Notifications") {
+            Section {
                 Toggle("Notify me about store matches", isOn: Binding(
                     get: { settings.payload.chainNotificationsEnabled },
                     set: { newValue in
@@ -115,19 +125,32 @@ struct SettingsView: View {
                         }
                     }
                 ))
+            } header: {
+                sectionHeader("Notifications")
             }
 
-            Section("About") {
+            Section {
                 LabeledContent("Data source", value: "openFDA (FDA enforcement reports)")
                 LabeledContent("Matching", value: "Brand-based — could be, not certainty")
                 Text("Recall data can lag the official FDA site by days to weeks.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            } header: {
+                sectionHeader("About")
             }
         }
         .scrollContentBackground(.hidden)
         .background(Design.Paper.background)
         .navigationTitle("Settings")
+    }
+
+    /// Replaces the default uppercase-gray Form section header with the
+    /// app's own token so Settings stops reading as a stock system screen.
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(.caption.weight(.bold))
+            .tracking(0.6)
+            .foregroundStyle(Design.Accent.brand)
     }
 
     private func searchNearCity() {

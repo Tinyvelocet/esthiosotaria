@@ -67,10 +67,14 @@ struct StoreMapView: View {
                 } label: {
                     StoreBadge(store: store, size: 28, isEmphasized: isSelected(store))
                         .shadow(radius: 2)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .disabled(onToggle == nil || (!isSelected(store) && selectionFull))
                 .opacity(onToggle != nil && !isSelected(store) && selectionFull ? 0.5 : 1)
+                .accessibilityLabel(store.name)
+                .accessibilityAddTraits(isSelected(store) ? [.isSelected] : [])
             }
         }
     }

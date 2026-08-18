@@ -189,7 +189,7 @@ struct OnboardingStorePickerView: View {
                 .foregroundStyle(.secondary)
             Spacer()
             Button("Done") { onDone() }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.appPrimary)
                 .disabled(selectedStores.isEmpty)
         }
     }
@@ -217,12 +217,13 @@ struct StoreRowView: View {
                 }
                 Spacer(minLength: 8)
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+                    .foregroundStyle(isSelected ? Design.Accent.brand : Color.secondary)
             }
         }
         .buttonStyle(.plain)
         .disabled(!isSelected && !canSelectMore)
         .opacity(!isSelected && !canSelectMore ? 0.5 : 1)
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }
 

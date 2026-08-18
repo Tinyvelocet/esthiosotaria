@@ -48,7 +48,7 @@ struct RecallListView: View {
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                 Button("Try again") { Task { await refresh() } }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.appPrimary)
             }
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -83,6 +83,10 @@ struct RecallListView: View {
             }
             .tabItem { Label("Area", systemImage: "map.fill") }
         }
+        #if os(iOS)
+        .toolbarBackground(Design.Paper.surface, for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
+        #endif
     }
 
     private func refresh() async {

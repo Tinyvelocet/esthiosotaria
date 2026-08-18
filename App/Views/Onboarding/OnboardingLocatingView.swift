@@ -21,7 +21,7 @@ struct OnboardingLocatingView: View {
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                 Button("Enter my city manually") { onManualEntry() }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.appPrimary)
             } else {
                 ProgressView()
                     .controlSize(.large)

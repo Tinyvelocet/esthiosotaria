@@ -29,6 +29,7 @@ struct RecallDetailView: View {
                 muteToggle
             }
             .padding()
+            .padding(.bottom, 60) // clears the floating tab bar — the last toggle was getting obscured behind it
             .frame(maxWidth: 640, alignment: .leading)
             .frame(maxWidth: .infinity)
         }

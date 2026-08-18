@@ -27,8 +27,11 @@ Support:
 | Purpose | File |
 |---|---|
 | Design tokens (colors, spacing, radius) | `App/Design/DesignTokens.swift` |
+| Custom `ButtonStyle`s (primary filled, secondary outlined) | `App/Design/Controls.swift` |
+| Shared dot-grid primitive (bitmask → cluster of dots) | `App/Design/DotGlyph.swift` |
 | Store identity badges (color + monogram) | `App/Design/StoreIdentity.swift` |
-| Danger fill mark (per-store aggregate score, geometric circle) | `App/Design/DangerMark.swift` |
+| Danger mark — per-store aggregate score as a dot-matrix numeral | `App/Design/DangerMark.swift` |
+| App mark — dot-ring seal with a dot-matrix exclamation, first impression only | `App/Design/RecallMark.swift` |
 | Generative scattered-circle background | `App/Design/PatternBackground.swift` |
 | Aggregate danger score formula (pure, tested) | `RecallKit/Sources/RecallKit/Matching/DangerScore.swift` |
 | Brand/firm key for muting "products I don't buy" (pure, tested) | `RecallKit/Sources/RecallKit/Matching/ProductKey.swift` |
@@ -47,7 +50,7 @@ Support:
 - **Palette is cream / red / navy**, inspired by the Monoprix rebrand ([wconrandesign.com/work/monoprix-is-back](https://www.wconrandesign.com/work/monoprix-is-back/)) — elegant, minimal, high-contrast, not a generic "app blue" palette. `Design.Paper` (background/surface/line/ink) and `Design.Accent.brand` (navy) live in `DesignTokens.swift`, both light+dark via `Color.dynamic(light:dark:)`. Red is spent entirely on danger — never used as a neutral accent.
 - **Two distinct severity systems, don't conflate them**:
   - **Per-recall classification** stays discrete, **dot + words**, never icon-only: "Critical — Class I", "Serious — Class II", "Minor — Class III". Colorblind-safe palette (`Design.Severity`: red/orange/gray).
-  - **Per-store aggregate** is a **continuous 0...1 danger score** (`DangerScore.score(for:)` in RecallKit — worst classification dominates, multiple recalls give a small boost, capped at 1.0), rendered as a proportional fill in `DangerMark`. This is a *different signal* (a store's overall risk right now), not a replacement for the per-recall classification.
+  - **Per-store aggregate** is a **continuous 0...1 danger score** (`DangerScore.score(for:)` in RecallKit — worst classification dominates, multiple recalls give a small boost, capped at 1.0), rendered as a **dot-matrix numeral** in `DangerMark`. This is a *different signal* (a store's overall risk right now), not a replacement for the per-recall classification.
 - **Copy honesty:** always "could be at your store", never "is".
 - **Icon + text pairing** everywhere (accessibility rule).
 - Store chips on chain matches are red (`Design.Accent.storeMatch`) — they are the escalation signal.
@@ -58,16 +61,20 @@ Support:
 - **Onboarding step titles** are `.title2.bold()` — one consistent role for "the title of this step". The Welcome screen is the deliberate exception (`.title.bold()`, since it's the app's first impression and earns the extra size); nothing else should invent a third size for the same job.
 - **`Design.Paper.background` is the screen background everywhere** — set once per screen root (List/Form need `.scrollContentBackground(.hidden)` first since they paint their own system background otherwise). `RootView` sets it at the top level so onboarding inherits it too; don't rely on that alone when adding a new top-level screen outside `RootView`'s tree — set it explicitly.
 - **No manual store filter chips.** The dashboard prioritizes by danger score instead of offering hide/show controls — don't reintroduce per-store filter UI without revisiting that decision.
+- **No progress rings, gauges, or sparklines standing in for content.** `DangerMark` was originally a circular progress-ring fill — indistinguishable from a battery indicator or Screen Time ring, and a banned pattern for exactly that reason. It now renders the score as a numeral built from the same dot primitive as `PatternBackground` (`DotGlyph`) instead. Don't reach for a ring/gauge/sparkline as a shortcut for "show a number visually" anywhere else in the app.
+- **Buttons use `PrimaryButtonStyle`/`SecondaryButtonStyle` from `Controls.swift`**, not `.borderedProminent`/`.bordered`. Primary is the one-CTA-per-screen filled navy pill; secondary is the outlined navy variant for a lesser action sitting next to something else (e.g. Settings' "Search"/"Mute"). Don't reach for stock button styles — that was the single largest source of "generic SwiftUI app" in the pre-exploration audit. `Toggle` stays the system `.switch` style deliberately (it already inherits the app tint; a custom toggle would be reinventing a standard affordance without real payoff).
+- **List rows that push to a detail screen are `NavigationLink`, never `.onTapGesture` + `.navigationDestination(item:)`.** The latter loses the disclosure chevron every iOS user expects and the automatic accessibility button trait — it was a real bug, not a style choice. `StoreDashboardView`'s tiles are the deliberate exception: they're not `List` rows, and `Button` + `.navigationDestination(item:)` is the correct idiom for triggering navigation from a custom (non-`List`) view.
+- **Icon-only controls get an explicit `.accessibilityLabel`.** A `Label` with visible text already covers itself; a bare `Image(systemName:)` inside a `Button` (refresh, gear, trash, map pins) does not — VoiceOver has nothing to read otherwise. Also keep icon-only tap targets at or above 44×44pt even when the icon itself is smaller.
 - **Muting is by brand/firm, global, and downgrades rather than hides.** Recall *events* never repeat, so "products I don't buy" mutes key off `ProductKey.displayName(for:)` (brand name, falling back to recalling firm) via `UserSettingsStore.payload.mutedProducts` — one flat list, not per-store. A muted recall keeps showing up in its store's list and the Area tab (so the user isn't blind to it if they change their mind) but loses the red "could be at your store" treatment, is excluded from a dashboard tile's active count/danger score, and never triggers a notification or a widget entry. Mute/unmute from `RecallDetailView`'s toggle or the `.muteSwipeAction` on any recall row; review/remove from Settings' "Products you don't buy" section.
 
 ## Home screen architecture (dashboard + area tabs)
 
 `RecallListView` no longer renders a scrolling list itself — it gates on load state, then hosts a `TabView` with two `NavigationStack`-wrapped tabs:
 
-- **Stores** (`StoreDashboardView`) — a 2-column quadrant grid, one tile per tracked store. Each tile shows that store's `DangerMark` (aggregate score fill) and `StoreBadge`; tapping drills into `StoreRecallListView` for that store's actual recall rows.
-- **Area** (`AreaListView`) — everything regional/nationwide, not tied to a specific store. Split out because a store-quadrant grid has no natural home for data that isn't about a store.
+- **Stores** (`StoreDashboardView`) — a **severity-ranked stack**, one row per tracked store, worst first. Urgency reshapes the layout itself instead of only recoloring a fixed grid: a store scoring ≥0.7 gets a full-width hero row (large `DangerMark`, prominent name/count), a store with a minor match gets a compact row, and a quiet store (score 0) collapses to a single line with no `DangerMark` at all — absence of the graphic reinforces absence of danger, and it stops empty stores from eating half the screen the way a fixed grid did. Tapping a row drills into `StoreRecallListView` for that store's actual recall rows. Don't revert this to a uniform grid; the whole point is that a dangerous store and a quiet one shouldn't look the same size.
+- **Area** (`AreaListView`) — everything regional/nationwide, not tied to a specific store. Split out because the store stack has no natural home for data that isn't about a store.
 
-`PatternBackground`'s density (`intensity`) tracks the worst danger score across all tracked stores — the background gets busier, not just the tiles, when something is more dangerous. It's `.allowsHitTesting(false)` and purely decorative — never encode information only in the pattern that isn't also in a tile.
+`PatternBackground`'s density (`intensity`) tracks the worst danger score across all tracked stores — the background gets busier, not just the rows, when something is more dangerous. It's `.allowsHitTesting(false)` and purely decorative — never encode information only in the pattern that isn't also in a row.
 
 ## Widget architecture (widget-first product)
 

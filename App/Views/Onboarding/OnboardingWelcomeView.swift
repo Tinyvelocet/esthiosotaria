@@ -2,16 +2,15 @@ import SwiftUI
 
 /// Onboarding step 1 — welcome. Pure design surface: no state, one action.
 ///
-/// **Design notes:** sets the tone for the app. Current treatment: SF Symbol
-/// hero, title, privacy reassurance, single CTA.
+/// **Design notes:** sets the tone for the app. `RecallMark` — the app's
+/// own dot-built seal — replaces a stock SF Symbol so the first thing a
+/// user sees is this app's material, not a generic cart icon.
 struct OnboardingWelcomeView: View {
     let onStart: () -> Void
 
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "cart.fill")
-                .font(.system(size: 56))
-                .foregroundStyle(Design.Accent.brand)
+        VStack(spacing: 20) {
+            RecallMark(size: 88)
             Text("Food recalls for your stores")
                 .font(.title.bold())
                 .multilineTextAlignment(.center)
@@ -19,7 +18,7 @@ struct OnboardingWelcomeView: View {
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
             Button("Get started") { onStart() }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.appPrimary)
         }
         .frame(maxWidth: 420)
     }

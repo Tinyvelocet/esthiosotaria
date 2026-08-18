@@ -22,7 +22,7 @@ struct OnboardingManualEntryView: View {
                     .font(.callout)
             }
             Button("Find stores near me") { onSearch() }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.appPrimary)
             Button("Back") { onBack() }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
