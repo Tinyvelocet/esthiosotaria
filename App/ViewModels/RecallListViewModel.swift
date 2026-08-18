@@ -32,22 +32,32 @@ final class RecallListViewModel: ObservableObject {
 
     private let service: FDAService
     private let fsisService: FSISService
+    private let fdaFeedService: FDAFeedService
 
-    init(service: FDAService = FDAService(), fsisService: FSISService = FSISService()) {
+    init(service: FDAService = FDAService(),
+         fsisService: FSISService = FSISService(),
+         fdaFeedService: FDAFeedService = FDAFeedService()) {
         self.service = service
         self.fsisService = fsisService
+        self.fdaFeedService = fdaFeedService
     }
 
     func refresh(stores: [Store], stateAbbrev: String, handledIDs: Set<String>, mutedProductNames: [String] = []) async {
         state = .loading
         self.stores = stores
         do {
-            // Fetch both sources in parallel; FSIS failure is non-fatal
-            // (its site bot-gates some networks — degrade to FDA-only).
+            // Fetch all sources in parallel. The FDA fast feed and FSIS are
+            // supplements — their failures are non-fatal (bot-gated networks,
+            // RSS quirks) and degrade gracefully to the structured feeds.
             async let fdaRecalls = service.fetchOngoing(limit: 500)
             let fsisRecalls = (try? await fsisService.fetchRecalls()) ?? []
+            let fastFdaRecalls = (try? await fdaFeedService.fetchRecalls()) ?? []
             fsisUnavailable = fsisRecalls.isEmpty
-            let recalls = try await fdaRecalls + fsisRecalls
+
+            let structuredFda = try await fdaRecalls
+            // Fast feed first, then openFDA-structured FDA, then FSIS. The
+            // deduplicator drops fast-feed duplicates that openFDA already has.
+            let recalls = RecallDeduplicator.mergeFast(fastFdaRecalls, intoBase: structuredFda) + fsisRecalls
 
             let engine = MatchingEngine(userState: stateAbbrev)
 
