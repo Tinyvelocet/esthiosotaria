@@ -125,4 +125,30 @@ final class FSISServiceTests: XCTestCase {
             // expected — FSIS bot-gating surfaces as a typed error, not a crash
         }
     }
+
+    // MARK: - Firm extraction (dateline handling)
+
+    func testFirmExtractionStripsDateline() {
+        let desc = "WASHINGTON, Aug. 6, 2026 – Grandview Meat Company, a Texas establishment, is recalling approximately 12,000 pounds of ground beef."
+        XCTAssertEqual(FSISService.firm(fromDescription: desc), "Grandview Meat Company")
+        // The dateline must never be reported as the firm name.
+        XCTAssertFalse(FSISService.firm(fromDescription: desc)?.hasPrefix("WASHINGTON") == true)
+    }
+
+    func testFirmReturnsNilWhenNoMarkingFirm() {
+        let desc = "FSIS is issuing a public health alert due to concerns of undeclared allergens in ready-to-eat chicken salad."
+        XCTAssertNil(FSISService.firm(fromDescription: desc))
+    }
+
+    // MARK: - Fallback id (must be stable across launches)
+
+    func testFallbackIDIsStable() {
+        let title = "Public Health Alert: Ready-to-Eat Chicken Salad"
+        XCTAssertEqual(FSISService.fallbackID(fromTitle: title), FSISService.fallbackID(fromTitle: title))
+        // Distinct titles must not collide.
+        XCTAssertNotEqual(
+            FSISService.fallbackID(fromTitle: title),
+            FSISService.fallbackID(fromTitle: "Public Health Alert: Frozen Beef Patties"))
+        XCTAssertTrue(FSISService.fallbackID(fromTitle: title).hasPrefix("FSIS-"))
+    }
 }

@@ -37,17 +37,27 @@ public enum StateMatcher {
     /// True when `pattern` indicates distribution reaching `stateAbbrev`.
     public static func coversState(_ pattern: String?, stateAbbrev: String) -> Bool {
         guard let pattern, !pattern.isEmpty else { return false }
-        let lower = pattern.lowercased()
 
         // Nationwide / multi-region-wide phrasing covers every state.
         let nationwidePhrases = ["nationwide", "nation-wide", "all 50 states", "all states", "u.s. wide", "us wide"]
-        if nationwidePhrases.contains(where: lower.contains) { return true }
+        if nationwidePhrases.contains(where: pattern.lowercased().contains) { return true }
 
-        let upper = pattern.uppercased()
-        // Match the abbreviation as a token to avoid substring false positives
-        // (e.g. "CA" inside "CALIFORNIA" is fine, but "OR" inside words is not).
-        let tokens = upper.split(whereSeparator: { !($0.isLetter || $0.isNumber) })
-        return tokens.contains(Substring(stateAbbrev.uppercased()))
-            || lower.contains(stateAbbrev.lowercased())
+        let target = stateAbbrev.uppercased()
+        guard let fullName = abbreviations.first(where: { $0.value == target })?.key else { return false }
+
+        // Tokenize the RAW (case-preserved) text. State abbreviations appear
+        // as all-caps tokens ("CA, OR, in NY"), while the English
+        // words "in"/"or"/"me"/"id" are lowercase — so we must NOT uppercase
+        // everything first or a user in Indiana matches every line containing
+        // the word "in". Full state names are matched case-insensitively.
+        for token in pattern.split(whereSeparator: { !($0.isLetter || $0.isNumber) }) {
+            if token.lowercased() == fullName { return true } // "...California..."
+            if token.uppercased() == target,   // an all-caps abbreviation token
+               token == token.uppercased(),
+               token.count == 2 {
+                return true
+            }
+        }
+        return false
     }
 }

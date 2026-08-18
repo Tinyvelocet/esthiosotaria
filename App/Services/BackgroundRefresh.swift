@@ -56,7 +56,11 @@ enum BackgroundRefresh {
             await viewModel.refresh(
                 stores: settings.selectedStores,
                 stateAbbrev: settings.payload.stateAbbrev,
-                handledIDs: Set(settings.payload.handledRecallIDs))
+                handledIDs: Set(settings.payload.handledRecallIDs),
+                // Pass muted products so the widget snapshot respects mutes:
+                // otherwise a background refresh (the common path on a phone)
+                // republishes silenced products back into the widget.
+                mutedProductNames: settings.payload.mutedProducts)
             // refresh() republishes the snapshot and reloads widget timelines.
         }
     }

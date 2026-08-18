@@ -90,7 +90,7 @@ public struct FSISService: Sendable {
 
     private static func makeRecall(_ item: FeedItem) -> Recall {
         let number = recallNumber(fromTitle: item.title)
-        let id = number.map { "FSIS-\($0)" } ?? "FSIS-\(abs(item.title.hashValue))"
+        let id = number.map { "FSIS-\($0)" } ?? fallbackID(fromTitle: item.title)
         return Recall(
             id: id,
             status: "Ongoing", // FSIS RSS carries active announcements only
@@ -130,24 +130,55 @@ public struct FSISService: Sendable {
         return String(title[r])
     }
 
+    /// Deterministic id for items that carry no recall number (public health
+    /// alerts). Must be stable across launches so handled/notification/mute
+    /// tracking persists — `String.hashValue` is re-seeded every process and
+    /// `abs(Int.min)` can trap, so it's unusable for this.
+    static func fallbackID(fromTitle title: String) -> String {
+        let sum = title.lowercased().unicodeScalars.reduce(UInt64(5381)) { ($0 &* 33) ^ UInt64($1.value) }
+        return "FSIS-" + String(sum, radix: 16, uppercase: true)
+    }
+
     /// FSIS titles follow "Class X Recall: <product>" or "Public Health Alert: <product>".
     static func product(fromTitle title: String) -> String {
         guard let colonIndex = title.firstIndex(of: ":") else { return title }
         return String(title[title.index(after: colonIndex)...]).trimmingCharacters(in: .whitespaces)
     }
 
-    /// Best-effort recalling firm: first sentence of the description when it
-    /// names an establishment ("X Company ... is recalling ..."). Returns nil
-    /// when the pattern isn't present (public health alerts often lack one).
+    /// Best-effort recalling firm: the name immediately preceding an
+    /// "is recalling"/"recalled approximately" marker, after stripping a
+    /// leading dateline. Returns nil when the pattern isn't present (public
+    /// health alerts often lack one). A previous version grabbed the first
+    /// three words of the first sentence, which usually captured the
+    /// dateline ("WASHINGTON, Aug. 6,") as the "firm".
     static func firm(fromDescription description: String) -> String? {
-        let lower = description.lowercased()
-        guard lower.contains("is recalling") || lower.contains("recalled approximately") else {
+        guard description.lowercased().contains("is recalling")
+                || description.lowercased().contains("recalled approximately") else {
             return nil
         }
-        let firstSentence = description.split(separator: ".").first.map(String.init) ?? description
-        let words = firstSentence.split(separator: " ")
-        guard words.count >= 2 else { return nil }
-        return words.prefix(3).joined(separator: " ").trimmingCharacters(in: .punctuationCharacters)
+
+        // Strip a leading dateline: "WASHINGTON, Aug. 6, 2026 – <firm> ...".
+        var body = description
+        if let range = body.range(
+            of: #"^.*?[\u{2013}\u{2014}]\s*"#, options: .regularExpression) {
+            body = String(body[range.upperBound...])
+        }
+
+        // The firm name sits right before the marker ("X Farms LLC, an
+        // establishment ... is recalling"). Take what precedes it and drop
+        // any trailing/embedded descriptor after a comma/em-dash.
+        let markers = [" is recalling", " recalled approximately"]
+        for marker in markers {
+            guard let markerRange = body.range(of: marker, options: .caseInsensitive) else { continue }
+            let preceding = body[body.startIndex..<markerRange.lowerBound]
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let firm = preceding.split(separator: ",").first.map(String.init) ?? preceding
+            let trimmed = firm
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .trimmingCharacters(in: .punctuationCharacters)
+            return trimmed.isEmpty ? nil : trimmed
+        }
+        return nil
     }
 
     /// Extracts a distribution summary: "nationwide", or the state list after

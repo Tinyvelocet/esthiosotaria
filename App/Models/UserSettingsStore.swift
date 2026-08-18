@@ -17,6 +17,32 @@ final class UserSettingsStore: ObservableObject {
         /// Brand/firm display names the user has marked "not something I
         /// buy" — see `ProductKey`. Global, not per-store.
         var mutedProducts: [String] = []
+
+        /// Defaults for a brand-new install.
+        init() {}
+
+        enum CodingKeys: String, CodingKey {
+            case selectedStores, radiusMiles, stateAbbrev, handledRecallIDs
+            case onboardingComplete, chainNotificationsEnabled, mutedProducts
+        }
+
+        /// Backward-compatible decode: every key is optional and falls back
+        /// to the default, so a settings file written by an OLDER build
+        /// (one that predates, say, `mutedProducts`) still decodes cleanly.
+        /// The synthesized `Decodable` would instead throw on a missing key
+        /// and ignore these default values, which — combined with the
+        /// trailing `try?` in `init()` — silently reset the user's stores,
+        /// onboarding, and handled recalls on upgrade.
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            selectedStores = try c.decodeIfPresent([Store].self, forKey: .selectedStores) ?? []
+            radiusMiles = try c.decodeIfPresent(Double.self, forKey: .radiusMiles) ?? RecallKit.defaultRadiusMiles
+            stateAbbrev = try c.decodeIfPresent(String.self, forKey: .stateAbbrev) ?? "CA"
+            handledRecallIDs = try c.decodeIfPresent([String].self, forKey: .handledRecallIDs) ?? []
+            onboardingComplete = try c.decodeIfPresent(Bool.self, forKey: .onboardingComplete) ?? false
+            chainNotificationsEnabled = try c.decodeIfPresent(Bool.self, forKey: .chainNotificationsEnabled) ?? true
+            mutedProducts = try c.decodeIfPresent([String].self, forKey: .mutedProducts) ?? []
+        }
     }
 
     @Published var payload: Payload {
