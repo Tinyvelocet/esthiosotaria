@@ -1,5 +1,9 @@
 # EsthioSotaria
 
+<p align="center">
+  <img src="Icon/appicon.png" width="256" alt="EsthioSotaria app icon" />
+</p>
+
 A local, **iOS** food recall tracker. It finds grocery stores near you, watches FDA and USDA food recalls, and escalates the ones that **could be at your stores** to the top.
 
 This is deliberately **not** an exhaustive recall database — it's a focused filter that tells you what matters to you and hides the rest.

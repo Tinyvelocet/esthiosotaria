@@ -26,6 +26,7 @@
 		52A3F53D6405056A8E2F81A8 /* EsthiosotariaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA300C405F7B98423A5E8C1A /* EsthiosotariaApp.swift */; };
 		54ECFB2B7DDC1B982FC37EDA /* StoreDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329446C6D595801BA837270C /* StoreDashboardView.swift */; };
 		5E9B4FD64E24D62DB2A34F09 /* DotGlyph.swift in Sources */ = {isa = PBXBuildFile; fileRef = F59CD1430795F7E3FCC78D5A /* DotGlyph.swift */; };
+		6A84ABE9DD8D3577702559EE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D4C98E9D03A6C2F425B94B65 /* Assets.xcassets */; };
 		6FA29623602DCE0911E55939 /* StoreMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046B3C1199F26FDFB72A5ECF /* StoreMapView.swift */; };
 		7A3E4665BEDB7D72455BD2A8 /* DesignGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7CF4A520CB609CDEAF93994 /* DesignGalleryView.swift */; };
 		7F3D50933B5970D06ABFE843 /* UserSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F890DFAD2082A12B035047 /* UserSettingsStore.swift */; };
@@ -108,6 +109,7 @@
 		BA300C405F7B98423A5E8C1A /* EsthiosotariaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EsthiosotariaApp.swift; sourceTree = "<group>"; };
 		BB8803F6740ACA3BAF9A8490 /* OnboardingManualEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingManualEntryView.swift; sourceTree = "<group>"; };
 		C7F890DFAD2082A12B035047 /* UserSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettingsStore.swift; sourceTree = "<group>"; };
+		D4C98E9D03A6C2F425B94B65 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DE5C910B53912E00585A0402 /* OnboardingLocatingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingLocatingView.swift; sourceTree = "<group>"; };
 		E79CBE87FABAB0DC27FFCAA6 /* EsthioSotaria_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = EsthioSotaria_iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E7CF4A520CB609CDEAF93994 /* DesignGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignGalleryView.swift; sourceTree = "<group>"; };
@@ -185,6 +187,7 @@
 		4D69D1EB043185223AE99119 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				D4C98E9D03A6C2F425B94B65 /* Assets.xcassets */,
 				BA300C405F7B98423A5E8C1A /* EsthiosotariaApp.swift */,
 				A58CE7131440EB52F3CED06D /* Info.plist */,
 				E536002A27DE2CA73F0750D1 /* Design */,
@@ -373,6 +376,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6A84ABE9DD8D3577702559EE /* Assets.xcassets in Resources */,
 				2C53372BF5A204D054D4E466 /* DMSerifDisplay-Regular.ttf in Resources */,
 				AA99474774880B2EF03FE185 /* OFL.txt in Resources */,
 			);
