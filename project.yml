@@ -55,8 +55,29 @@ targets:
         SKIP_INSTALL: YES
         TARGETED_DEVICE_FAMILY: "1,2"
 
+  EsthioSotaria_ScreenshotGen:
+    type: tool
+    platform: macOS
+    sources:
+      - path: App
+        excludes:
+          - "*.entitlements"
+          - "EsthiosotariaApp.swift"
+          - "Resources"
+          - "Services/BackgroundRefresh.swift"
+      - path: scripts/ScreenshotGen/Runner.swift
+    dependencies:
+      - package: RecallKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.tinyvelocet.screenshotgen
+
 schemes:
   EsthioSotaria_iOS:
     build:
       targets:
         EsthioSotaria_iOS: all
+  EsthioSotaria_ScreenshotGen:
+    build:
+      targets:
+        EsthioSotaria_ScreenshotGen: all

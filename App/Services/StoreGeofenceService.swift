@@ -39,6 +39,7 @@ final class StoreGeofenceService: NSObject, ObservableObject {
     /// regions for stores not yet monitored, stops ones for removed stores.
     func syncRegions(for stores: [Store]) {
         self.stores = stores
+        #if os(iOS)
         let currentIDs = Set(manager.monitoredRegions.compactMap { $0 as? CLCircularRegion }.map(\.identifier))
         let wantedIDs = Set(stores.map(Self.regionIdentifier))
 
@@ -57,12 +58,17 @@ final class StoreGeofenceService: NSObject, ObservableObject {
             manager.startMonitoring(for: region)
         }
         isMonitoring = !stores.isEmpty
+        #else
+        isMonitoring = false
+        #endif
     }
 
     func stopAll() {
+        #if os(iOS)
         for region in manager.monitoredRegions {
             manager.stopMonitoring(for: region)
         }
+        #endif
         isMonitoring = false
     }
 
