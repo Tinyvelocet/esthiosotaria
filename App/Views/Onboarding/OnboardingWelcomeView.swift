@@ -12,7 +12,7 @@ struct OnboardingWelcomeView: View {
         VStack(spacing: 20) {
             RecallMark(size: 88)
             Text("Food recalls for your stores")
-                .font(.title.bold())
+                .font(Design.BrandFont.display)
                 .multilineTextAlignment(.center)
             Text("EsthioSotaria watches FDA and USDA food recalls and flags the ones that could be on the shelves of up to 4 grocery stores near you. Your location never leaves this device.")
                 .multilineTextAlignment(.center)

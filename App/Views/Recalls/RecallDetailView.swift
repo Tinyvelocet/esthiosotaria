@@ -61,7 +61,7 @@ struct RecallDetailView: View {
                 }
             }
             Text(item.recall.recallingFirm ?? "Unknown company")
-                .font(.title2.bold())
+                .font(Design.BrandFont.sized(26))
                 .tracking(-0.3)
                 .foregroundStyle(Design.Paper.ink)
             Text("Recall \(item.recall.id)")

@@ -121,4 +121,17 @@ enum Design {
         /// Cards, map clips, inert placeholders — the app's one corner radius.
         static let card: CGFloat = 12
     }
+
+    /// The brand display face — a warm editorial serif (DM Serif Display,
+    /// SIL OFL 1.1, bundled at `App/Resources/Fonts`). Reserved for the
+    /// app's first-impression headings; body text and UI labels stay on the
+    /// system SF font so the brand face reads as a signature, not the default.
+    enum BrandFont {
+        /// PostScript name of the bundled face (must match `UIAppFonts`).
+        static let name = "DMSerifDisplay-Regular"
+        /// Standard large lockup for display headlines.
+        static let display = Font.custom(name, size: 34)
+        /// A brand-facing heading at an explicit size.
+        static func sized(_ size: CGFloat) -> Font { Font.custom(name, size: size) }
+    }
 }
