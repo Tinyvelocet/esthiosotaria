@@ -49,11 +49,12 @@ final class MatchingEngineTests: XCTestCase {
     }
 
     func testIndependentStoreFallsBackToRegional() {
-        // Piazza's has no chain id: even a local-ish recall is regional-only.
+        // Piazza's has no chain id and a pantry product gives no category
+        // signal either, so a local recall stays regional-only.
         let recall = Recall(
             id: "F-4", classification: .classI,
-            recallingFirm: "Artisan Cheese Co",
-            productDescription: "Soft ripened cheese wheels",
+            recallingFirm: "Granola Mill Co",
+            productDescription: "Toasted granola bars",
             distributionPattern: "CA")
         let rel = engine().relevance(for: recall, stores: [piazza])
         XCTAssertEqual(rel.tier, .regional)
@@ -110,5 +111,70 @@ final class MatchingEngineTests: XCTestCase {
             distributionPattern: "nationwide")
         let rel = engine().relevance(for: recall, stores: [costco])
         XCTAssertEqual(rel.tier, .chain)
+    }
+
+    // MARK: - Tier 2 (product-category matching)
+
+    func testSoftCheeseEscalatesForIndependentGrocer() {
+        let recall = Recall(id: "F-20", classification: .classII,
+                            recallingFirm: "Artisan Dairy",
+                            productDescription: "Soft ripened cheese wheels",
+                            reasonForRecall: "Possible Listeria contamination.",
+                            distributionPattern: "CA")
+        let rel = engine().relevance(for: recall, stores: [piazza]) // independent (gourmet) grocer
+        XCTAssertEqual(rel.tier, .chain)
+        XCTAssertEqual(rel.matchedStoreIDs, [piazza.id])
+    }
+
+    func testSoftCheeseDoesNotEscalateForGenericChain() {
+        let recall = Recall(id: "F-21", classification: .classII,
+                            recallingFirm: "Artisan Dairy",
+                            productDescription: "Soft ripened cheese wheels",
+                            distributionPattern: "CA")
+        let rel = engine().relevance(for: recall, stores: [costco]) // generic chain
+        XCTAssertEqual(rel.tier, .regional) // a category match is no signal for Costco
+    }
+
+    func testSoftCheeseEscalatesForSpecialtyChain() {
+        let wholeFoods = Store(name: "Whole Foods Market", chain: "wholefoods", latitude: 37.4, longitude: -122.1)
+        let recall = Recall(id: "F-22", classification: .classII,
+                            recallingFirm: "Artisan Dairy",
+                            productDescription: "Soft ripened cheese wheels",
+                            distributionPattern: "CA")
+        let rel = engine().relevance(for: recall, stores: [wholeFoods])
+        XCTAssertEqual(rel.tier, .chain)
+        XCTAssertEqual(rel.matchedStoreIDs, [wholeFoods.id])
+    }
+
+    func testNonSpecialtyCategoryDoesNotEscalate() {
+        // Ground beef (meat) isn't a distinctive Tier-2 category -> stays regional.
+        let recall = Recall(id: "F-23", classification: .classII,
+                            recallingFirm: "Ranch Co",
+                            productDescription: "Ground beef patties",
+                            reasonForRecall: "E. coli risk.",
+                            distributionPattern: "CA")
+        let rel = engine().relevance(for: recall, stores: [piazza])
+        XCTAssertEqual(rel.tier, .regional)
+    }
+
+    func testBrandChainMatchStillBeatsCategory() {
+        // A Kirkland cheese recall matches Costco by brand even though cheese
+        // isn't a Costco Tier-2 category — brand is Tier-1 and wins.
+        let recall = Recall(id: "F-24", classification: .classII,
+                            recallingFirm: "Costco Wholesale",
+                            productDescription: "Kirkland Signature cheese wedges",
+                            distributionPattern: "CA")
+        let rel = engine().relevance(for: recall, stores: [costco])
+        XCTAssertEqual(rel.tier, .chain)
+        XCTAssertEqual(rel.matchedStoreIDs, [costco.id])
+    }
+
+    func testCategoryMatchReasonStaysHonest() {
+        let recall = Recall(id: "F-25", classification: .classII,
+                            recallingFirm: "Artisan Dairy",
+                            productDescription: "Soft ripened cheese wheels",
+                            distributionPattern: "CA")
+        let rel = engine().relevance(for: recall, stores: [piazza])
+        XCTAssertTrue(rel.reason.lowercased().contains("could be"))
     }
 }

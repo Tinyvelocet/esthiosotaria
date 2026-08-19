@@ -28,3 +28,7 @@ Carthage/Build/
 
 # Hermes
 .hermes/
+
+# Design scratch + generated screenshots (kept local, not in the repo)
+/Design/
+/docs/screenshots/

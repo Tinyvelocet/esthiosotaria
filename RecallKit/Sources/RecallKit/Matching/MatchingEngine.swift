@@ -31,6 +31,28 @@ public struct MatchingEngine: Sendable {
                 reason: "This recall involves a brand that could be sold at \(matchedStores.count == 1 ? "your store" : "your stores").")
         }
 
+        // Tier 2 (category): the brand isn't a chain house-brand, but the *kind
+        // of product* could be carried by a tracked specialty/independent store
+        // (e.g. a soft-cheese recall at your gourmet grocer). Elevates to chain
+        // so it surfaces at your stores — still only "could be at your store".
+        let category = CategoryCatalog.category(for: recall)
+        if CategoryCatalog.specialtyCategories.contains(category) {
+            var categoryMatched: [UUID] = []
+            for store in stores where CategoryAffinity.plausiblyCarries(category, for: store) {
+                categoryMatched.append(store.id)
+            }
+            if !categoryMatched.isEmpty {
+                let names = categoryMatched.compactMap { id in stores.first(where: { $0.id == id })?.name }
+                let reason: String
+                if categoryMatched.count == 1, let name = names.first {
+                    reason = "This \(category.label) recall could be at your store \(name) — the kind of product it carries."
+                } else {
+                    reason = "This \(category.label) recall could be at your stores, which carry this kind of product."
+                }
+                return Relevance(tier: .chain, matchedStoreIDs: categoryMatched, reason: reason)
+            }
+        }
+
         // Tier 3 (regional): distribution covers the user's state.
         if StateMatcher.coversState(recall.distributionPattern, stateAbbrev: userStateAbbrev) {
             return Relevance(
