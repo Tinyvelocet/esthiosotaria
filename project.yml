@@ -36,7 +36,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.tinyvelocet.esthiosotaria
         INFOPLIST_FILE: App/Info.plist
-        TARGETED_DEVICE_FAMILY: "1,2"
+        TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_ENTITLEMENTS: App/EsthioSotaria-iOS.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
@@ -53,7 +53,7 @@ targets:
         INFOPLIST_FILE: Widget/Info.plist
         CODE_SIGN_ENTITLEMENTS: Widget/EsthioSotariaWidget-iOS.entitlements
         SKIP_INSTALL: YES
-        TARGETED_DEVICE_FAMILY: "1,2"
+        TARGETED_DEVICE_FAMILY: "1"
 
   # Heads-up render target: compiles the app's own views + RecallKit + MockData
   # to PNG screenshots via SwiftUI ImageRenderer (for design hand-off to Figma).
