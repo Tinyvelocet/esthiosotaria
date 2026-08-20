@@ -29,7 +29,21 @@ Food recalls are published constantly (~1,400 FDA recalls/year), but only a frac
   Overpass receive the coordinates needed for a local store search. They are
   never stored, uploaded to any server you control, or shared beyond those
   public services.
-- Data sources: [openFDA enforcement API](https://open.fda.gov/apis/food/enforcement/), [OSM Overpass](https://overpass-api.de), Apple MapKit — all public, keyless at this usage level.
+- Data sources: [openFDA enforcement API](https://open.fda.gov/apis/food/enforcement/), [USDA FSIS recall RSS](https://www.fsis.usda.gov/rss/recalls.xml), [OSM Overpass](https://overpass-api.de), Apple MapKit — all public, keyless at this usage level.
+
+## Data sources & USA-wide coverage
+
+EsthioSotaria pulls every ongoing food recall from the **two federal agencies**
+that hold recall authority over food sold in the U.S. Together they cover the
+whole country:
+
+| Source | Regulates | Notes |
+| --- | --- | --- |
+| **openFDA** `api.fda.gov/food/enforcement.json` | All FDA-regulated food (everything except meat, poultry, processed egg) + dietary supplements | Recall Enterprise System, **2004–present**, refreshed weekly, **nationwide** |
+| **FDA Food Safety recall RSS** | Same scope, **fresher** (published within days) | Supplements / outpaces openFDA until it catches up |
+| **USDA FSIS** `fsis.usda.gov/rss/recalls.xml` | Meat, poultry, processed egg (the category FDA *doesn't* regulate) | Active recalls/public-health alerts only |
+
+No third federal agency issues food recalls, and state agencies re-publish the same federal recalls (recall authority is federal wherever the product ships) — so the app already has complete **nationwide** coverage, matched against any of the **50 states + DC** via `StateMatcher`. There is no state-level API to add, and no state source would meaningfully extend coverage.
 
 ## Known limitations (by design, stated honestly)
 
