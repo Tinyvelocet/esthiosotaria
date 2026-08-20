@@ -55,7 +55,7 @@ The core logic lives in the UI-free **RecallKit** Swift package:
 
 ```bash
 cd RecallKit
-swift test                 # 21 tests — models, FDA client, matching, POI parsing
+swift test                 # 104 tests — models, FDA/FSIS/feed clients, matching, POI parsing, dedup
 ```
 
 ## Architecture
@@ -78,10 +78,17 @@ in `App/Resources/Fonts`; body text uses the system SF font.
 
 ## Roadmap
 
+- [x] **Faster feeds** — FDA Food Safety Recalls RSS merged into the structured
+  openFDA feed as a freshness supplement (closes the batch-index lag; openFDA
+  metadata wins on duplicates). (`FDAFeedService` + `RecallDeduplicator`)
+- [x] **Tier-2 brand→category matching** — a recall's *kind* of product can be
+  relevant to a tracked specialty/independent store (soft cheese → your gourmet
+  grocer), even when the brand isn't a house label. (`CategoryCatalog` +
+  `CategoryAffinity`, a tier between brand-chain and regional)
 - [x] USDA FSIS (meat/poultry/egg) ingestion
-- [ ] Faster feeds (FDA listing page / RSS) to close the openFDA lag
-- [ ] CloudKit sync + cross-device notification delivery (iOS silent push)
-- [ ] Tier-2 brand→category matching (e.g. soft cheese → gourmet grocers)
+- [ ] **CloudKit sync + cross-device notification delivery (iOS silent push)** —
+  the remaining item. Requires the iOS app installed on each receiving device
+  (Apple can't push to a device without the app).
 
 ## License
 
