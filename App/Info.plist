@@ -40,5 +40,12 @@
 	<array>
 		<string>DMSerifDisplay-Regular.ttf</string>
 	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>Portrait</string>
+		<string>LandscapeLeft</string>
+		<string>LandscapeRight</string>
+		<string>UpsideDown</string>
+	</array>
 </dict>
 </plist>

@@ -25,7 +25,9 @@ enum BackgroundRefresh {
                 task.setTaskCompleted(success: false)
                 return
             }
-            handle(refreshTask)
+            // The scheduler callback runs on a background queue; hop to main
+            // before calling the @MainActor handle().
+            Task { @MainActor in handle(refreshTask) }
         }
     }
 

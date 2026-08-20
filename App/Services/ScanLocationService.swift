@@ -75,11 +75,8 @@ final class ScanLocationService: NSObject, ObservableObject {
             regional.sort(by: Self.sortItems)
 
             result = Result(store: store, chainMatches: chain, regionalMatches: regional, lastUpdated: Date())
-        } catch let e {
-            errorMessage = e.localizedDescription
-            result = nil
         } catch {
-            errorMessage = "Couldn't scan this location."
+            errorMessage = error.localizedDescription
             result = nil
         }
     }

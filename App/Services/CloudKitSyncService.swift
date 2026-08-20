@@ -73,7 +73,7 @@ final class CloudKitSyncService: ObservableObject {
                 predicate: NSPredicate(value: true),
                 subscriptionID: "sync-settings",
                 options: [.firesOnRecordCreation, .firesOnRecordUpdate, .firesOnRecordDeletion])
-            var info: CKSubscription.NotificationInfo = sub.notificationInfo ?? CKSubscription.NotificationInfo()
+            let info: CKSubscription.NotificationInfo = sub.notificationInfo ?? CKSubscription.NotificationInfo()
             info.shouldSendContentAvailable = true // background delivery
             sub.notificationInfo = info
             _ = try await db.modifySubscriptions(saving: [sub], deleting: [])
@@ -149,10 +149,7 @@ extension CloudKitSyncService {
     }
 
     static func decode(_ json: String) -> UserSettingsStore.Payload? {
-        if let data = try? Data(json.utf8),
-           let decoded = try? JSONDecoder().decode(UserSettingsStore.Payload.self, from: data) {
-            return decoded
-        }
-        return nil
+        let data = Data(json.utf8)
+        return try? JSONDecoder().decode(UserSettingsStore.Payload.self, from: data)
     }
 }

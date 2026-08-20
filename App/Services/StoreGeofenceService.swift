@@ -181,15 +181,12 @@ extension StoreGeofenceService: CLLocationManagerDelegate {
         let settings = UserSettingsStore()
         guard settings.isOnboardingComplete else { return hasFreshData }
         let vm = RecallListViewModel()
-        do {
-            try await vm.refresh(stores: settings.selectedStores,
-                                 stateAbbrev: settings.payload.stateAbbrev,
-                                 handledIDs: Set(settings.payload.handledRecallIDs),
-                                 mutedProductNames: settings.payload.mutedProducts)
-            hasFreshData = true
-        } catch {
-            hasFreshData = false
-        }
+        await vm.refresh(stores: settings.selectedStores,
+                         stateAbbrev: settings.payload.stateAbbrev,
+                         handledIDs: Set(settings.payload.handledRecallIDs),
+                         mutedProductNames: settings.payload.mutedProducts)
+        // refresh() doesn't throw — it reports success/failure through `state`.
+        hasFreshData = (vm.state == .loaded)
         return hasFreshData
     }
 }
