@@ -76,19 +76,31 @@ App/                  iOS app target (SwiftUI) + WidgetKit widget
 The bundled brand face is **DM Serif Display** ([SIL OFL 1.1](App/Resources/Fonts/OFL.txt))
 in `App/Resources/Fonts`; body text uses the system SF font.
 
-## Roadmap
+## Design
 
-- [x] **Faster feeds** — FDA Food Safety Recalls RSS merged into the structured
-  openFDA feed as a freshness supplement (closes the batch-index lag; openFDA
-  metadata wins on duplicates). (`FDAFeedService` + `RecallDeduplicator`)
-- [x] **Tier-2 brand→category matching** — a recall's *kind* of product can be
-  relevant to a tracked specialty/independent store (soft cheese → your gourmet
-  grocer), even when the brand isn't a house label. (`CategoryCatalog` +
-  `CategoryAffinity`, a tier between brand-chain and regional)
-- [x] USDA FSIS (meat/poultry/egg) ingestion
-- [ ] **CloudKit sync + cross-device notification delivery (iOS silent push)** —
-  the remaining item. Requires the iOS app installed on each receiving device
-  (Apple can't push to a device without the app).
+The app's look is **fully customizable** — it's driven by a small set of
+central design tokens plus the bundled brand face, so restyling the whole app
+is editing a handful of files, not hunting through views.
+
+- **Palette & spacing** — every color, corner radius, and gap lives in
+  [`App/Design/DesignTokens.swift`](App/Design/DesignTokens.swift). Change the
+  warm paper base, the single danger red, or the brand navy there and it
+  propagates everywhere.
+- **Brand typeface** — swap `App/Resources/Fonts/DMSerifDisplay-Regular.ttf`
+  (SIL OFL 1.1) for any font you like and register it in
+  [`App/Info.plist`](App/Info.plist) (`UIAppFonts`) + `Design.BrandFont`.
+- **App icon** — a 1024px source lives at [`Icon/appicon.png`](Icon/appicon.png);
+  the compiled asset catalog is [`App/Assets.xcassets`](App/Assets.xcassets).
+- **Screen-by-screen** — every major screen is an isolated SwiftUI view under
+  `App/Views/`, and a screenshot tool renders each one at iPhone size from the
+  app's own views + mock data. See [`design/`](design/) for the current
+  Figma reference set and how to regenerate it after a design change.
+- **Preview-first iteration** — each view ships `#Preview(...)` blocks, so you
+  can open the SwiftUI previews and iterate on a screen without running the
+  full app.
+
+The screenshot renderer (a macOS-only tool, not shipped) lives in
+[`scripts/ScreenshotGen/`](scripts/ScreenshotGen/).
 
 ## License
 
