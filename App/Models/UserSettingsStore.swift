@@ -7,7 +7,7 @@ import RecallKit
 @MainActor
 final class UserSettingsStore: ObservableObject {
 
-    struct Payload: Codable {
+    struct Payload: Codable, Equatable {
         var selectedStores: [Store] = []
         var radiusMiles: Double = RecallKit.defaultRadiusMiles
         var stateAbbrev: String = "CA"

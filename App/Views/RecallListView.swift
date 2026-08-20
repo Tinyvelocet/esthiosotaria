@@ -33,8 +33,24 @@ struct RecallListView: View {
                 if settings.payload.entryNotificationsEnabled {
                     StoreGeofenceService.shared.syncRegions(for: settings.selectedStores)
                 }
+                #if os(iOS)
+                // Pair with the iCloud capability to sync the user's settings
+                // across devices. Degrades to local-only when unavailable.
+                let sync = CloudKitSyncService()
+                await sync.activate()
+                var payload = settings.payload
+                if await sync.pull(&payload) {
+                    settings.payload = payload
+                }
+                #endif
             }
-            .onChange(of: settings.payload.selectedStores) { _, _ in
+            .onChange(of: settings.payload) { _, newValue in
+                #if os(iOS)
+                // Propagate any local change to the user's other devices.
+                Task { @MainActor in
+                    _ = await CloudKitSyncService().push(newValue)
+                }
+                #endif
                 guard settings.payload.entryNotificationsEnabled else { return }
                 StoreGeofenceService.shared.syncRegions(for: settings.selectedStores)
             }
