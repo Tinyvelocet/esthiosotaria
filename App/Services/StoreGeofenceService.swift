@@ -14,9 +14,9 @@ import RecallKit
 /// - Fires at most **once per visit**: after the first entry notification it
 ///   stays quiet until the user exits the region, so passing a store twice
 ///   doesn't spam. Entry is re-armed on `didExitRegion`.
-/// - On entry it attempts a **fresh recall fetch** so the status reflects the
-///   latest data (per preference), falling back to the cached snapshot if the
-///   network call fails — so you're never left with nothing.
+/// - On entry it attempts a **fresh recall fetch** and **awaits it**, so the
+///   body can truthfully state whether the check reflects live data or the
+///   device's last saved snapshot. The title never waivers from "All safe".
 ///
 /// Requirements (device/runtime, not just build):
 /// - "Always" location authorization (region monitoring must deliver while the
@@ -33,19 +33,33 @@ final class StoreGeofenceService: NSObject, ObservableObject {
     @Published var authorizationDenied = false
 
     private let manager = CLLocationManager()
-    /// How far around a store counts as "entering it" (meters).
-    static let regionRadiusMeters: CLLocationDistance = 200
+
+    /// Whether the most recent entry refresh had fresh data available.
+    private var hasFreshData = false
+    private var lastFetched = Date(timeIntervalSinceNow: -999)
 
     /// Store ids whose entry alert has fired during the current visit.
     private var announcedThisVisit = Set<String>()
 
     private var stores: [Store] = []
-    private var lastFetched = Date(timeIntervalSinceNow: -999)
 
     private override init() {
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+    }
+
+    /// The "entering" radius for a store, in meters. Big-box / wholesale / large
+    /// footprint formats (Costco, Walmart, Target) get a wider radius so the
+    /// alert fires as you round into the lot rather than when you're already
+    /// at the door; conventional/other stores use a tighter default.
+    static func regionRadius(for store: Store) -> CLLocationDistance {
+        switch store.chain {
+        case "costco", "walmart", "target":
+            return 300
+        default:
+            return 200
+        }
     }
 
     /// Re-sync region monitoring to match the current tracked stores: starts
@@ -64,7 +78,7 @@ final class StoreGeofenceService: NSObject, ObservableObject {
         for store in stores where !currentIDs.contains(Self.regionIdentifier(for: store)) {
             let center = CLLocationCoordinate2D(latitude: store.latitude, longitude: store.longitude)
             let region = CLCircularRegion(center: center,
-                                          radius: Self.regionRadiusMeters,
+                                          radius: Self.regionRadius(for: store),
                                           identifier: Self.regionIdentifier(for: store))
             region.notifyOnEntry = true
             region.notifyOnExit = true // exit is silent — it re-arms entry
@@ -83,6 +97,7 @@ final class StoreGeofenceService: NSObject, ObservableObject {
         }
         #endif
         announcedThisVisit.removeAll()
+        hasFreshData = false
         isMonitoring = false
     }
 
@@ -115,13 +130,17 @@ extension StoreGeofenceService: CLLocationManagerDelegate {
             guard !announcedThisVisit.contains(id) else { return }
             announcedThisVisit.insert(id)
 
-            // Fresh recall lookup on entry so "all safe" reflects the latest;
-            // failure just means we skip the refresh (no network = still notify).
-            refreshRecalls()
+            // Awaited so the body can truthfully say whether it used live data
+            // (fresh fetch) or the last saved snapshot (couldn't refresh).
+            let fresh = await refreshRecallsIfNeeded()
 
             let content = UNMutableNotificationContent()
             content.title = "All safe at \(store.name)."
-            content.body = "EsthioSotaria checked the latest recall data for \(store.name)."
+            if fresh {
+                content.body = "EsthioSotaria checked the latest recall data for \(store.name)."
+            } else {
+                content.body = "All safe per your latest recall check for \(store.name). Couldn't refresh right now."
+            }
             content.sound = .default
             content.userInfo = ["geofenceStoreID": store.id.uuidString]
             let request = UNNotificationRequest(
@@ -149,20 +168,28 @@ extension StoreGeofenceService: CLLocationManagerDelegate {
         }
     }
 
-    /// Kicks a fresh recall refresh (at most once every 90s) so the entry copy
-    /// reflects the latest data without hammering the network on every entry.
-    /// Failure is non-fatal — the notification still goes out.
-    private func refreshRecalls() {
-        guard Date().timeIntervalSince(lastFetched) > 90 else { return }
-        lastFetched = Date()
-        Task { @MainActor in
-            let settings = UserSettingsStore()
-            guard settings.isOnboardingComplete else { return }
-            let vm = RecallListViewModel()
-            try? await vm.refresh(stores: settings.selectedStores,
-                                  stateAbbrev: settings.payload.stateAbbrev,
-                                  handledIDs: Set(settings.payload.handledRecallIDs),
-                                  mutedProductNames: settings.payload.mutedProducts)
+    /// Awaits a fresh recall refresh (at most once every 90s) and reports
+    /// whether fresh data is now available (a fetch succeeded or we already had
+    /// fresh data from the last <90s). Failure is non-fatal — the caller still
+    /// sends the "All safe" notification, just with the honest fallback body.
+    private func refreshRecallsIfNeeded() async -> Bool {
+        // Already refreshed within the throttle window? Use the last outcome.
+        if Date().timeIntervalSince(lastFetched) < 90 {
+            return hasFreshData
         }
+        lastFetched = Date()
+        let settings = UserSettingsStore()
+        guard settings.isOnboardingComplete else { return hasFreshData }
+        let vm = RecallListViewModel()
+        do {
+            try await vm.refresh(stores: settings.selectedStores,
+                                 stateAbbrev: settings.payload.stateAbbrev,
+                                 handledIDs: Set(settings.payload.handledRecallIDs),
+                                 mutedProductNames: settings.payload.mutedProducts)
+            hasFreshData = true
+        } catch {
+            hasFreshData = false
+        }
+        return hasFreshData
     }
 }
