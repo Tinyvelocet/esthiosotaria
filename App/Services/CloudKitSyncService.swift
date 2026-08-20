@@ -30,6 +30,9 @@ import CloudKit
 @MainActor
 final class CloudKitSyncService: ObservableObject {
 
+    /// The app-wide sync service — single activation state shared by all callers.
+    static let shared = CloudKitSyncService()
+
     /// A single zone keeps all user-sync records in one place.
     static let zoneID = CKRecordZone.ID(zoneName: "EsthioSotariaSync", ownerName: CKCurrentUserDefaultName)
     static let recordType = "Settings"
@@ -41,6 +44,22 @@ final class CloudKitSyncService: ObservableObject {
     #if os(iOS)
     private var activated = false
     #endif
+
+    private init() {}
+
+    /// Calls `activate()` and swallows anything non-fatal so callers never have
+    /// to reason about the entitlement edge in their launch path.
+    func activateSafely() async {
+        #if os(iOS)
+        await activate()
+        // If CloudKit isn't reachable, pull/push are no-ops (isSupported false).
+        let settings = UserSettingsStore()
+        var payload = settings.payload
+        if isSupported, await pull(&payload) {
+            settings.payload = payload
+        }
+        #endif
+    }
 
     /// The app's iCloud container. Must be registered in Xcode's iCloud
     /// capabilities + an entitlement generated — a one-time GUI step.
@@ -54,10 +73,32 @@ final class CloudKitSyncService: ObservableObject {
 
     /// Prime the zone + silent-push subscription. Idempotent. Safe to call
     /// once at app launch; returns without error if CloudKit is unavailable.
+    ///
+    /// NOTE: the container/database properties can raise a missing-entitlement
+    /// fatal at runtime when the iCloud capability isn't enabled in the Xcode
+    /// GUI, so we check `accountStatus()` FIRST and never touch a database
+    /// unless an iCloud account is actually available. This keeps launch safe
+    /// on simulators / unsigned builds (cloud runs local-only).
     func activate() async {
         #if os(iOS)
         guard !activated else { return }
         activated = true
+
+        // Fail fast to local-only if there's no entitled, signed-in account.
+        let container = CKContainer.default()
+        do {
+            let status = try await container.accountStatus()
+            guard status == .available else {
+                isSupported = false
+                lastSyncStatus = "CloudKit unavailable — staying local-only."
+                return
+            }
+        } catch {
+            isSupported = false
+            lastSyncStatus = "CloudKit unavailable — staying local-only."
+            return
+        }
+
         let db = container.privateCloudDatabase
         do {
             // Ensure the zone exists (create on first run).

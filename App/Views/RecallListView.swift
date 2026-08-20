@@ -35,12 +35,10 @@ struct RecallListView: View {
                 }
                 #if os(iOS)
                 // Pair with the iCloud capability to sync the user's settings
-                // across devices. Degrades to local-only when unavailable.
-                let sync = CloudKitSyncService()
-                await sync.activate()
-                var payload = settings.payload
-                if await sync.pull(&payload) {
-                    settings.payload = payload
+                // across devices. Guarded so a CloudKit runtime trap on an
+                // unentitled simulator can never take down launch.
+                Task { @MainActor in
+                    await CloudKitSyncService.shared.activateSafely()
                 }
                 #endif
             }
@@ -48,7 +46,7 @@ struct RecallListView: View {
                 #if os(iOS)
                 // Propagate any local change to the user's other devices.
                 Task { @MainActor in
-                    _ = await CloudKitSyncService().push(newValue)
+                    _ = await CloudKitSyncService.shared.push(newValue)
                 }
                 #endif
                 guard settings.payload.entryNotificationsEnabled else { return }
