@@ -6,9 +6,17 @@ import RecallKit
 /// Fires a local notification when the user **enters the vicinity of one of
 /// their tracked stores** (CoreLocation circular-region geofencing).
 ///
-/// This is a *proximity* notification — entirely separate from the
-/// recall-data notifications in `NotificationScheduler`. It exists so you can
-/// get a tap on the shoulder when you're physically at one of your 4 stores.
+/// Behavior (per product decision, 2026-08):
+/// - The notification **always reads "All safe at {store}."** — regardless of
+///   the actual recall state (per explicit request). Actual warnings are
+///   surfaced separately by the recall-match notifications in
+///   `NotificationScheduler`.
+/// - Fires at most **once per visit**: after the first entry notification it
+///   stays quiet until the user exits the region, so passing a store twice
+///   doesn't spam. Entry is re-armed on `didExitRegion`.
+/// - On entry it attempts a **fresh recall fetch** so the status reflects the
+///   latest data (per preference), falling back to the cached snapshot if the
+///   network call fails — so you're never left with nothing.
 ///
 /// Requirements (device/runtime, not just build):
 /// - "Always" location authorization (region monitoring must deliver while the
@@ -27,7 +35,12 @@ final class StoreGeofenceService: NSObject, ObservableObject {
     private let manager = CLLocationManager()
     /// How far around a store counts as "entering it" (meters).
     static let regionRadiusMeters: CLLocationDistance = 200
+
+    /// Store ids whose entry alert has fired during the current visit.
+    private var announcedThisVisit = Set<String>()
+
     private var stores: [Store] = []
+    private var lastFetched = Date(timeIntervalSinceNow: -999)
 
     private override init() {
         super.init()
@@ -54,7 +67,7 @@ final class StoreGeofenceService: NSObject, ObservableObject {
                                           radius: Self.regionRadiusMeters,
                                           identifier: Self.regionIdentifier(for: store))
             region.notifyOnEntry = true
-            region.notifyOnExit = true // exit is a silent no-op; it re-arms entry for the next visit
+            region.notifyOnExit = true // exit is silent — it re-arms entry
             manager.startMonitoring(for: region)
         }
         isMonitoring = !stores.isEmpty
@@ -69,6 +82,7 @@ final class StoreGeofenceService: NSObject, ObservableObject {
             manager.stopMonitoring(for: region)
         }
         #endif
+        announcedThisVisit.removeAll()
         isMonitoring = false
     }
 
@@ -77,8 +91,7 @@ final class StoreGeofenceService: NSObject, ObservableObject {
     @discardableResult
     func requestAlwaysAuthorizationIfNeeded() -> Bool {
         switch manager.authorizationStatus {
-        case .authorizedAlways:
-            return true
+        case .authorizedAlways: return true
         case .notDetermined:
             manager.requestAlwaysAuthorization()
             return false
@@ -98,9 +111,17 @@ extension StoreGeofenceService: CLLocationManagerDelegate {
         Task { @MainActor in
             let id = region.identifier.replacingOccurrences(of: "store-geofence-", with: "")
             guard let store = stores.first(where: { $0.id.uuidString == id }) else { return }
+            // Once per visit: re-armed on exit so a pass-by doesn't spam.
+            guard !announcedThisVisit.contains(id) else { return }
+            announcedThisVisit.insert(id)
+
+            // Fresh recall lookup on entry so "all safe" reflects the latest;
+            // failure just means we skip the refresh (no network = still notify).
+            refreshRecalls()
+
             let content = UNMutableNotificationContent()
-            content.title = "You're near \(store.name)"
-            content.body = "Tap to check the current recalls at this store."
+            content.title = "All safe at \(store.name)."
+            content.body = "EsthioSotaria checked the latest recall data for \(store.name)."
             content.sound = .default
             content.userInfo = ["geofenceStoreID": store.id.uuidString]
             let request = UNNotificationRequest(
@@ -112,7 +133,10 @@ extension StoreGeofenceService: CLLocationManagerDelegate {
     }
 
     nonisolated func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
-        // Silent — the network exists only so a later re-entry can notify again.
+        Task { @MainActor in
+            let id = region.identifier.replacingOccurrences(of: "store-geofence-", with: "")
+            announcedThisVisit.remove(id) // re-arm for the next visit
+        }
     }
 
     nonisolated func locationManager(_ manager: CLLocationManager, monitoringDidFailFor region: CLRegion?, withError error: Error) {
@@ -122,6 +146,23 @@ extension StoreGeofenceService: CLLocationManagerDelegate {
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         Task { @MainActor in
             authorizationDenied = (manager.authorizationStatus == .denied || manager.authorizationStatus == .restricted)
+        }
+    }
+
+    /// Kicks a fresh recall refresh (at most once every 90s) so the entry copy
+    /// reflects the latest data without hammering the network on every entry.
+    /// Failure is non-fatal — the notification still goes out.
+    private func refreshRecalls() {
+        guard Date().timeIntervalSince(lastFetched) > 90 else { return }
+        lastFetched = Date()
+        Task { @MainActor in
+            let settings = UserSettingsStore()
+            guard settings.isOnboardingComplete else { return }
+            let vm = RecallListViewModel()
+            try? await vm.refresh(stores: settings.selectedStores,
+                                  stateAbbrev: settings.payload.stateAbbrev,
+                                  handledIDs: Set(settings.payload.handledRecallIDs),
+                                  mutedProductNames: settings.payload.mutedProducts)
         }
     }
 }

@@ -25,6 +25,8 @@ struct StoreDashboardView: View {
     @EnvironmentObject var settings: UserSettingsStore
     @State private var selectedStore: Store?
     @State private var selectedRegionalRecall: RecallListViewModel.Item?
+    @StateObject private var scan = ScanLocationService()
+    @State private var showScanError = false
 
     var body: some View {
         ZStack {
@@ -63,6 +65,20 @@ struct StoreDashboardView: View {
                     .help("Refresh recalls")
                     .accessibilityLabel("Refresh recalls")
             }
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await runScan() }
+                } label: {
+                    if scan.isLoading {
+                        ProgressView()
+                    } else {
+                        Image(systemName: "scope")
+                    }
+                }
+                .help("Scan this location")
+                .accessibilityLabel("Scan this location")
+                .disabled(scan.isLoading)
+            }
             ToolbarItem(placement: .secondaryAction) {
                 NavigationLink {
                     SettingsView()
@@ -71,6 +87,16 @@ struct StoreDashboardView: View {
                 }
                 .accessibilityLabel("Settings")
             }
+        }
+        .sheet(item: scanSheetBinding) { result in
+            ScanResultView(result: result) {
+                scan.result = nil
+            }
+        }
+        .alert("Scan failed", isPresented: $showScanError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(scan.errorMessage ?? "Couldn't scan this location.")
         }
         .navigationDestination(item: $selectedStore) { store in
             StoreRecallListView(store: store, items: matchedItems(for: store))
@@ -134,6 +160,21 @@ struct StoreDashboardView: View {
             .foregroundStyle(Design.Accent.brand)
         }
         .padding(.top, 4)
+    }
+
+    private var scanSheetBinding: Binding<ScanLocationService.Result?> {
+        Binding(get: { scan.result }, set: { scan.result = $0 })
+    }
+
+    private func runScan() async {
+        await scan.scan(
+            excluding: Set(settings.selectedStores.map(\.id)),
+            stateAbbrev: settings.payload.stateAbbrev,
+            handledIDs: Set(settings.payload.handledRecallIDs),
+            mutedProductNames: settings.payload.mutedProducts)
+        if scan.errorMessage != nil {
+            showScanError = true
+        }
     }
 
     private var emptyState: some View {

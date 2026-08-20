@@ -25,9 +25,12 @@
 		326A2CFD796B587EAE39CD91 /* RecallListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74813730C740907548951A4D /* RecallListView.swift */; };
 		3B01CACA4F1E496530F6DD77 /* OnboardingManualEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8803F6740ACA3BAF9A8490 /* OnboardingManualEntryView.swift */; };
 		3D4D0122C1AAA1DF11AEDAC5 /* RecallMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 128754466058823F83FA5B7D /* RecallMark.swift */; };
+		3E1F7DCE2F790F4B58752079 /* ScanLocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3696C487DF047ADC73161A0 /* ScanLocationService.swift */; };
 		3F892093B44A6FD4F21FDC70 /* Runner.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD803AB279643D8A42D1D443 /* Runner.swift */; };
 		40D86D5BB573BCD25B56C9B6 /* StoreDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5465F34631498D6C6FC665FE /* StoreDiscoveryService.swift */; };
 		41C95569E511AC2126E0B5CF /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C8304011099B618A0C12BAB /* NotificationScheduler.swift */; };
+		43A7D7DDF7E853CD6206F0E0 /* ScanResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF8426CF3DDCCD0F18BDA8BD /* ScanResultView.swift */; };
+		4473B55358D8BA6AA6FE3971 /* ScanLocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3696C487DF047ADC73161A0 /* ScanLocationService.swift */; };
 		44D6D13292CE7E809822ABF1 /* OnboardingManualEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8803F6740ACA3BAF9A8490 /* OnboardingManualEntryView.swift */; };
 		47499F4DD35D76F35CADE7D6 /* RecallKit in Frameworks */ = {isa = PBXBuildFile; productRef = 604E20E1790ECA03B145C09D /* RecallKit */; };
 		4AE187CEF0057522B9ABE012 /* EsthioSotariaWidget_iOS.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AB8F15FCE82D4E23573E821D /* EsthioSotariaWidget_iOS.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -79,6 +82,7 @@
 		F4CAD5E795C3BDB381D74551 /* OnboardingWelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5291BB8BAF72FFB0D12BED32 /* OnboardingWelcomeView.swift */; };
 		F8D6CE621D532D7C29A3BA57 /* StoreRecallListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62EA0D0864732FE737275289 /* StoreRecallListView.swift */; };
 		FB9D1101C175227806D208DE /* RecallDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D66057A787A480252B9CE0 /* RecallDetailView.swift */; };
+		FCCB474AD2F2BC42D2C1963B /* ScanResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF8426CF3DDCCD0F18BDA8BD /* ScanResultView.swift */; };
 		FDC9B6CFE3D7319E24FABE74 /* StoreDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5465F34631498D6C6FC665FE /* StoreDiscoveryService.swift */; };
 		FE422AC64B5D1DD9FB7D401F /* RecallListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74813730C740907548951A4D /* RecallListView.swift */; };
 /* End PBXBuildFile section */
@@ -146,6 +150,7 @@
 		BB8803F6740ACA3BAF9A8490 /* OnboardingManualEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingManualEntryView.swift; sourceTree = "<group>"; };
 		C7F890DFAD2082A12B035047 /* UserSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettingsStore.swift; sourceTree = "<group>"; };
 		CD803AB279643D8A42D1D443 /* Runner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Runner.swift; sourceTree = "<group>"; };
+		D3696C487DF047ADC73161A0 /* ScanLocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanLocationService.swift; sourceTree = "<group>"; };
 		D4C98E9D03A6C2F425B94B65 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DE5C910B53912E00585A0402 /* OnboardingLocatingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingLocatingView.swift; sourceTree = "<group>"; };
 		E79CBE87FABAB0DC27FFCAA6 /* EsthioSotaria_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = EsthioSotaria_iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -154,6 +159,7 @@
 		EBD9852A948EDCEB5B1A4D6A /* RecallTimelineProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecallTimelineProvider.swift; sourceTree = "<group>"; };
 		F59CD1430795F7E3FCC78D5A /* DotGlyph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotGlyph.swift; sourceTree = "<group>"; };
 		FE5EB70364DB56439B8A414B /* RecallWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecallWidget.swift; sourceTree = "<group>"; };
+		FF8426CF3DDCCD0F18BDA8BD /* ScanResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanResultView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -199,6 +205,7 @@
 				1E28F0EE43C635A8E39CE955 /* OnboardingView.swift */,
 				74813730C740907548951A4D /* RecallListView.swift */,
 				E9B919A53830848335705167 /* RootView.swift */,
+				FF8426CF3DDCCD0F18BDA8BD /* ScanResultView.swift */,
 				5BD33BDE03B89B9D9FFB068D /* SettingsView.swift */,
 				329446C6D595801BA837270C /* StoreDashboardView.swift */,
 				62EA0D0864732FE737275289 /* StoreRecallListView.swift */,
@@ -224,6 +231,7 @@
 				7DCAFB7F69C370ACA39B507F /* BackgroundRefresh.swift */,
 				749AC61E5D7802C215876034 /* LocationService.swift */,
 				2C8304011099B618A0C12BAB /* NotificationScheduler.swift */,
+				D3696C487DF047ADC73161A0 /* ScanLocationService.swift */,
 				5465F34631498D6C6FC665FE /* StoreDiscoveryService.swift */,
 				1D9C5573BD647DCDE44233F2 /* StoreGeofenceService.swift */,
 			);
@@ -513,6 +521,8 @@
 				3D4D0122C1AAA1DF11AEDAC5 /* RecallMark.swift in Sources */,
 				D4B28D07F9ADCBE16204995B /* RecallRowView.swift in Sources */,
 				25025E6B6BE18A4EF0F89FE4 /* RootView.swift in Sources */,
+				3E1F7DCE2F790F4B58752079 /* ScanLocationService.swift in Sources */,
+				43A7D7DDF7E853CD6206F0E0 /* ScanResultView.swift in Sources */,
 				DCE56BF7209EB052B1F7B07E /* SettingsView.swift in Sources */,
 				54ECFB2B7DDC1B982FC37EDA /* StoreDashboardView.swift in Sources */,
 				FDC9B6CFE3D7319E24FABE74 /* StoreDiscoveryService.swift in Sources */,
@@ -551,6 +561,8 @@
 				A9E32B388802ED54D38CB4C4 /* RecallRowView.swift in Sources */,
 				A04AFC339BB56D4913D065DD /* RootView.swift in Sources */,
 				3F892093B44A6FD4F21FDC70 /* Runner.swift in Sources */,
+				4473B55358D8BA6AA6FE3971 /* ScanLocationService.swift in Sources */,
+				FCCB474AD2F2BC42D2C1963B /* ScanResultView.swift in Sources */,
 				27BF08575DCABD5A29519703 /* SettingsView.swift in Sources */,
 				613CA4F174EB28885ED31CE0 /* StoreDashboardView.swift in Sources */,
 				40D86D5BB573BCD25B56C9B6 /* StoreDiscoveryService.swift in Sources */,
