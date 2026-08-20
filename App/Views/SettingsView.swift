@@ -50,8 +50,7 @@ struct SettingsView: View {
                 Button {
                     Task { await scanAtCurrentLocation() }
                 } label: {
-                    Label(location.status == .requesting ? "Locating…" : "Use my current location",
-                          systemImage: "location.fill")
+                    Label(scanButtonLabel, systemImage: "location.fill")
                 }
                 .buttonStyle(.appSecondary)
                 .disabled(location.status == .requesting)
@@ -171,6 +170,11 @@ struct SettingsView: View {
             .font(.caption.weight(.bold))
             .tracking(0.6)
             .foregroundStyle(Design.Accent.brand)
+    }
+
+    private var scanButtonLabel: String {
+        if location.status == .requesting { return "Locating…" }
+        return "Use my current location"
     }
 
     private func searchNearCity() {

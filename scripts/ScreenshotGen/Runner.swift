@@ -59,6 +59,17 @@ struct ScreenshotRunner {
         .environmentObject(settings)
         render("06-dashboard", dashboard, centered: false)
 
+        // Scan result — a non-favorite store with a chain match
+        let scanStore = Store(name: "Lakeside Grocer", chain: nil, latitude: 37.40, longitude: -122.13)
+        let scanResult = ScanLocationService.Result(
+            store: scanStore,
+            chainMatches: MockData.items(for: [MockData.wontonWrappers], stores: [scanStore]),
+            regionalMatches: MockData.items(for: [MockData.romaineLettuce], stores: [scanStore]),
+            lastUpdated: Date())
+        let scanView = ScanResultView(result: scanResult) {}
+            .environmentObject(settings)
+        render("06b-scan-result", scanView, centered: false)
+
         // Recall detail — Class I chain match
         let chainItem = MockData.items(for: [MockData.kirklandMadeleines], stores: MockData.fourStores)[0]
         let detail = NavigationStack { RecallDetailView(item: chainItem) }

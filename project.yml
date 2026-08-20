@@ -55,6 +55,9 @@ targets:
         SKIP_INSTALL: YES
         TARGETED_DEVICE_FAMILY: "1,2"
 
+  # Heads-up render target: compiles the app's own views + RecallKit + MockData
+  # to PNG screenshots via SwiftUI ImageRenderer (for design hand-off to Figma).
+  # Not shipped — build/run locally (see scripts/ScreenshotGen/Runner.swift).
   EsthioSotaria_ScreenshotGen:
     type: tool
     platform: macOS
@@ -65,7 +68,9 @@ targets:
           - "EsthiosotariaApp.swift"
           - "Resources"
           - "Services/BackgroundRefresh.swift"
+          - "Services/StoreGeofenceService.swift"
       - path: scripts/ScreenshotGen/Runner.swift
+      - path: scripts/ScreenshotGen/StoreGeofenceServiceStub.swift
     dependencies:
       - package: RecallKit
     settings:
