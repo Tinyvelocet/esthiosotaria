@@ -35,7 +35,11 @@ final class ScanLocationService: NSObject, ObservableObject {
     /// Runs a scan: nearest non-favorite store around the current location,
     /// matched against fresh recalls.
     func scan(excluding favoriteIDs: Set<UUID>, stateAbbrev: String, handledIDs: Set<String>, mutedProductNames: [String]) async {
+        // Reset from any prior run up front, so a stale error/result can't
+        // leak into a fresh scan (a previous failure's "Scan failed" alert
+        // must not reappear over a later successful result).
         isLoading = true
+        errorMessage = nil
         defer { isLoading = false }
         do {
             let coordinate = try await location.requestCurrentLocation()
