@@ -49,9 +49,13 @@ final class UserSettingsStore: ObservableObject {
     }
 
     @Published var payload: Payload {
-        didSet { scheduleSave() }
+        didSet {
+            guard !isInMemory else { return }
+            scheduleSave()
+        }
     }
 
+    private let isInMemory: Bool
     private var saveTask: Task<Void, Never>?
 
     private static var fileURL: URL {
@@ -62,12 +66,19 @@ final class UserSettingsStore: ObservableObject {
     }
 
     init() {
+        isInMemory = false
         if let data = try? Data(contentsOf: Self.fileURL),
            let decoded = try? JSONDecoder().decode(Payload.self, from: data) {
             payload = decoded
         } else {
             payload = Payload()
         }
+    }
+
+    /// In-memory only: mutations never schedule a disk write.
+    private init(inMemory: Bool) {
+        isInMemory = inMemory
+        payload = Payload()
     }
 
     // Convenience accessors
@@ -130,7 +141,7 @@ final class UserSettingsStore: ObservableObject {
 
     /// Pre-populated store for previews / design gallery (no file I/O).
     static func designState() -> UserSettingsStore {
-        let store = UserSettingsStore()
+        let store = UserSettingsStore(inMemory: true)
         store.payload.selectedStores = MockData.fourStores
         store.payload.stateAbbrev = "CA"
         store.payload.onboardingComplete = true

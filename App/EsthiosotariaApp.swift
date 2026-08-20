@@ -12,7 +12,7 @@ struct EsthiosotariaApp: App {
         WindowGroup {
             Group {
                 if DesignGalleryView.showAtLaunch {
-                    NavigationStack { DesignGalleryView() }
+                    DesignGalleryView()
                 } else {
                     RootView()
                         .environmentObject(settings)

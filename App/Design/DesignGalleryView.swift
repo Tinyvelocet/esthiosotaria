@@ -92,7 +92,5 @@ struct DesignGalleryView: View {
 }
 
 #Preview("Design Gallery") {
-    NavigationStack {
-        DesignGalleryView()
-    }
+    DesignGalleryView()
 }
