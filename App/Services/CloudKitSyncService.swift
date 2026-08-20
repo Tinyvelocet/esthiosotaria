@@ -71,6 +71,26 @@ final class CloudKitSyncService: ObservableObject {
         #endif
     }
 
+    /// Whether this process should attempt CloudKit at all.
+    ///
+    /// The iOS **Simulator has no meaningful iCloud and — critically — a
+    /// simulator/ad-hoc build without the CloudKit entitlement makes CloudKit
+    /// `os_crash` (EXC_BREAKPOINT) on the very first API access
+    /// (e.g. `CKContainer.default()`), before any `do/catch` can help. So we
+    /// never touch CloudKit on the simulator.
+    ///
+    /// On a real device the app is properly signed with the entitlement (a
+    /// one-time Xcode "Signing & Capabilities → + iCloud → CloudKit" step), so
+    /// CloudKit is safe there; the `accountStatus()` check in `activate()` then
+    /// handles the has-no-account / unavailable cases.
+    static func shouldAttemptCloudKit() -> Bool {
+        #if targetEnvironment(simulator)
+        return false
+        #else
+        return true
+        #endif
+    }
+
     /// Prime the zone + silent-push subscription. Idempotent. Safe to call
     /// once at app launch; returns without error if CloudKit is unavailable.
     ///
@@ -84,7 +104,19 @@ final class CloudKitSyncService: ObservableObject {
         guard !activated else { return }
         activated = true
 
-        // Fail fast to local-only if there's no entitled, signed-in account.
+        // CRITICAL: never touch any CloudKit API unless we're on a real,
+        // entitled device. On the simulator (or an unsigned/ad-hoc build
+        // without the entitlement), even `CKContainer.default()` triggers a
+        // missing-entitlement `os_crash` inside CloudKit on the FIRST access —
+        // an `EXC_BREAKPOINT` that no do/catch can swallow, and it takes down
+        // the whole launch task.
+        guard Self.shouldAttemptCloudKit() else {
+            isSupported = false
+            lastSyncStatus = "CloudKit unavailable — simulator (no iCloud)."
+            return
+        }
+
+        // Fail fast to local-only if there's no signed-in account.
         let container = CKContainer.default()
         do {
             let status = try await container.accountStatus()
